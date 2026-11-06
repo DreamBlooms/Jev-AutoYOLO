@@ -81,7 +81,7 @@ Base URL: `http://localhost:8000/api/v1`
 | GET | `/train/jobs/{id}/download` | Download PT model |
 | GET | `/train/jobs/{id}/dataset` | Download dataset zip |
 | GET | `/train/jobs/{id}/charts/{name}` | Training charts (results.png, etc.) |
-| POST | `/train/jobs/{id}/export-onnx` | Export / download ONNX model |
+| GET / POST | `/train/jobs/{id}/export-onnx` | Export / download ONNX model |
 | POST | `/train/jobs/{id}/predict` | YOLO inference (image) |
 | POST | `/train/jobs/{id}/retrain` | Re-run with same settings |
 | GET | `/train/jobs/{id}/validate-mjpeg/{video_id}` | Validate video (MJPEG live stream) |

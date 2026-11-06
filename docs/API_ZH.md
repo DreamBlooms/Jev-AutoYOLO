@@ -81,7 +81,7 @@ Base URL: `http://localhost:8000/api/v1`
 | GET | `/train/jobs/{id}/download` | 下载 PT 模型 |
 | GET | `/train/jobs/{id}/dataset` | 下载数据集 zip |
 | GET | `/train/jobs/{id}/charts/{name}` | 训练曲线图（results.png 等） |
-| POST | `/train/jobs/{id}/export-onnx` | 导出 / 下载 ONNX 模型 |
+| GET / POST | `/train/jobs/{id}/export-onnx` | 导出 / 下载 ONNX 模型 |
 | POST | `/train/jobs/{id}/predict` | YOLO 推理（图片） |
 | POST | `/train/jobs/{id}/retrain` | 使用相同设置重新训练 |
 | GET | `/train/jobs/{id}/validate-mjpeg/{video_id}` | 视频验证（MJPEG 实时流） |

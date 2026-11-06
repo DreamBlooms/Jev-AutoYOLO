@@ -259,6 +259,7 @@ def get_chart(
     return FileResponse(str(chart_path), media_type="image/png")
 
 
+@router.get("/jobs/{job_id}/export-onnx")
 @router.post("/jobs/{job_id}/export-onnx")
 def export_onnx(
     job_id: UUID,
