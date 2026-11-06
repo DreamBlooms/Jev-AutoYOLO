@@ -2,9 +2,29 @@ import { create } from "zustand";
 import type { FilterMode } from "@/lib/filterBoxes";
 
 interface AppState {
+  // Runtime config
+  annotationOnly: boolean;
+  setAnnotationOnly: (v: boolean) => void;
+  gpuAvailable: boolean;
+  setGpuAvailable: (v: boolean) => void;
+  configLoaded: boolean;
+  setConfigLoaded: (v: boolean) => void;
+  devicePreference: string;
+  setDevicePreference: (v: string) => void;
+  activeDevice: string;
+  setActiveDevice: (v: string) => void;
+  availableDevices: string[];
+  setAvailableDevices: (v: string[]) => void;
+  rocm: boolean;
+  setRocm: (v: boolean) => void;
+  gpuName: string;
+  setGpuName: (v: string) => void;
+
   // Model Config
   appMode: "annotate" | "validate";
   setAppMode: (mode: "annotate" | "validate") => void;
+  useVlm: boolean;
+  setUseVlm: (v: boolean) => void;
   useSam2: boolean;
   setUseSam2: (v: boolean) => void;
   useSam3: boolean;
@@ -19,6 +39,14 @@ interface AppState {
   setSam2ScoreThreshold: (v: number) => void;
   sam3Text: string;
   setSam3Text: (v: string) => void;
+  extraState: string;
+  setExtraState: (v: string) => void;
+  extraInstructions: string;
+  setExtraInstructions: (v: string) => void;
+  categoryInstructions: Record<string, string>;
+  setCategoryInstructions: (
+    value: Record<string, string> | ((prev: Record<string, string>) => Record<string, string>),
+  ) => void;
 
   // Upload State
   inputMode: "image" | "video";
@@ -70,9 +98,29 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
+  // Runtime config
+  annotationOnly: false,
+  setAnnotationOnly: (annotationOnly) => set({ annotationOnly }),
+  gpuAvailable: true,
+  setGpuAvailable: (gpuAvailable) => set({ gpuAvailable }),
+  configLoaded: false,
+  setConfigLoaded: (configLoaded) => set({ configLoaded }),
+  devicePreference: "auto",
+  setDevicePreference: (devicePreference) => set({ devicePreference }),
+  activeDevice: "cpu",
+  setActiveDevice: (activeDevice) => set({ activeDevice }),
+  availableDevices: ["cpu"],
+  setAvailableDevices: (availableDevices) => set({ availableDevices }),
+  rocm: false,
+  setRocm: (rocm) => set({ rocm }),
+  gpuName: "",
+  setGpuName: (gpuName) => set({ gpuName }),
+
   // Model Config
   appMode: "annotate",
   setAppMode: (mode) => set({ appMode: mode }),
+  useVlm: false,
+  setUseVlm: (useVlm) => set({ useVlm }),
   useSam2: false,
   setUseSam2: (useSam2) => set({ useSam2 }),
   useSam3: false,
@@ -87,6 +135,16 @@ export const useAppStore = create<AppState>((set) => ({
   setSam2ScoreThreshold: (sam2ScoreThreshold) => set({ sam2ScoreThreshold }),
   sam3Text: "",
   setSam3Text: (sam3Text) => set({ sam3Text }),
+  extraState: "",
+  setExtraState: (extraState) => set({ extraState }),
+  extraInstructions: "",
+  setExtraInstructions: (extraInstructions) => set({ extraInstructions }),
+  categoryInstructions: {},
+  setCategoryInstructions: (value) =>
+    set((state) => ({
+      categoryInstructions:
+        typeof value === "function" ? value(state.categoryInstructions) : value,
+    })),
 
   // Upload State
   inputMode: "image",

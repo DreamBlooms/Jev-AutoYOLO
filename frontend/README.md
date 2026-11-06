@@ -1,6 +1,6 @@
-# VLM-AutoYOLO Frontend
+# Jev-AutoYOLO Frontend
 
-React + TypeScript + Vite frontend for the VLM-AutoYOLO auto-labeling and YOLO training workflow.
+React + TypeScript + Vite frontend for the Jev-AutoYOLO auto-labeling and YOLO training workflow.
 
 ## Requirements
 
@@ -11,10 +11,11 @@ The app uses Vite/Rolldown native bindings. Reinstall dependencies if `node_modu
 ## Scripts
 
 ```bash
-npm install
-npm run dev
-npm run lint
-npm run build
+corepack enable
+pnpm install
+pnpm dev
+pnpm run lint
+pnpm run build
 ```
 
 ## Key Areas
@@ -23,6 +24,10 @@ npm run build
 - `src/components/DetectionCanvas.tsx` - image preview, bounding-box rendering, and manual drawing.
 - `src/components/DetectionResult.tsx` - result actions, YOLO export, batch thumbnails, and validation-safe controls.
 - `src/components/ResultTable.tsx` - box table, visibility toggles, and delete actions.
+- `src/components/DeviceSelector.tsx` - runtime CPU / CUDA / MPS / ROCm device switching.
+- `src/components/JevAdvancedSettings.tsx` - optional extra Jev state, global instructions, and per-category instructions.
+- `src/components/ModelDownloadButton.tsx` - pull and initialize VLM / SAM2 / SAM3 models from the UI.
+- `src/components/AnnotationExportPanel.tsx` - annotation-only mode export panel.
 - `src/hooks/useDetection.ts` - detection list and mutation hooks.
 - `src/hooks/useBatchDetection.ts` - serial batch detection flow.
 - `src/hooks/useYoloValidation.ts` - trained-model validation mode.

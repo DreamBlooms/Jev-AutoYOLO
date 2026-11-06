@@ -6,15 +6,28 @@ export async function detectImage(
   useSam2?: boolean,
   sam2ScoreThreshold?: number,
   useSam3?: boolean,
+  useVlm?: boolean,
   sam3Text?: string,
   useSam3Seg?: boolean,
   sam3Threshold?: number,
   sam3MaskThreshold?: number,
+  extraState?: string,
+  extraInstructions?: string,
+  categoryInstructions?: Record<string, string>,
   signal?: AbortSignal,
 ): Promise<DetectResponse> {
   const form = new FormData();
   form.append("file", file);
   form.append("categories", JSON.stringify(categories));
+  if (extraState?.trim()) form.append("extra_state", extraState.trim());
+  if (extraInstructions?.trim()) form.append("extra_instructions", extraInstructions.trim());
+  const filteredCategoryInstructions = Object.fromEntries(
+    Object.entries(categoryInstructions ?? {}).filter(([, value]) => value.trim()),
+  );
+  if (Object.keys(filteredCategoryInstructions).length > 0) {
+    form.append("category_instructions", JSON.stringify(filteredCategoryInstructions));
+  }
+  if (useVlm) form.append("use_vlm", "true");
   if (useSam3) {
     form.append("use_sam3", "true");
     if (sam3Text) form.append("sam3_text", sam3Text);
@@ -224,6 +237,34 @@ export function downloadDatasetUrl(jobId: string): string {
   return `${API_BASE}/train/jobs/${jobId}/dataset`;
 }
 
+// ── Runtime config ───────────────────────────────
+
+export interface AppConfig {
+  annotationOnly: boolean;
+  trainingEnabled: boolean;
+  validationEnabled: boolean;
+  samEnabled: boolean;
+  device: string;
+  devicePreference: string;
+  availableDevices: string[];
+  gpuAvailable: boolean;
+  rocm: boolean;
+  gpuName: string;
+  jevProvider: string;
+  jevConfigured: boolean;
+  jevModel: string;
+}
+
+export async function getAppConfig(): Promise<AppConfig> {
+  const { data } = await request.get<AppConfig>("/config");
+  return data;
+}
+
+export async function setInferenceDevice(device: string): Promise<AppConfig> {
+  const { data } = await request.post<AppConfig>("/config/device", { device });
+  return data;
+}
+
 // ── Model ────────────────────────────────────────
 
 export interface ModelStatus {
@@ -241,6 +282,23 @@ export async function getModelStatus(): Promise<ModelStatus> {
 
 export async function unloadModel(): Promise<void> {
   await request.post("/model/unload");
+}
+
+export type ModelKind = "vlm" | "sam2" | "sam3";
+
+export interface ModelDownloadStatus {
+  state: string;
+  stage: string;
+  progress: number;
+  error: string;
+  source: string;
+}
+
+export async function downloadModel(kind: ModelKind): Promise<ModelDownloadStatus> {
+  const { data } = await request.post<{ data: ModelDownloadStatus }>(
+    `/model/${kind}/download`,
+  );
+  return data.data;
 }
 
 export async function getSam2Status(): Promise<ModelStatus> {

@@ -9,6 +9,7 @@ import contextlib
 import json
 import logging
 import shutil
+import uuid as uuid_lib
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -22,6 +23,11 @@ if TYPE_CHECKING:
     from ..models.detection import Detection
 
 logger = logging.getLogger(__name__)
+
+
+def _as_uuid(value: str | uuid_lib.UUID) -> uuid_lib.UUID:
+    return value if isinstance(value, uuid_lib.UUID) else uuid_lib.UUID(str(value))
+
 
 YOLO_SERIES = {
     "yolo26": {
@@ -100,7 +106,11 @@ def _build_dataset(
     detections: list[Detection] = []
 
     for det_id in detection_ids:
-        det = db.query(Detection).filter(Detection.id == det_id).first()
+        try:
+            det_uuid = _as_uuid(det_id)
+        except (ValueError, TypeError):
+            continue
+        det = db.query(Detection).filter(Detection.id == det_uuid).first()
         if not det or det.status != "completed":
             continue
         src = Path(det.image_path)
@@ -147,6 +157,17 @@ def _build_dataset(
     val_n = _write_set(val_dets, "val")
     test_n = _write_set(test_dets, "test") if has_test else 0
     return train_n + val_n + test_n, class_map, train_n, val_n, test_n
+
+
+def _loss_value(loss_items: object | None) -> float:
+    """Normalise Ultralytics loss tensor/dict/list variants to a float."""
+    if hasattr(loss_items, "mean"):
+        return float(loss_items.mean())
+    if isinstance(loss_items, dict) and loss_items:
+        return float(sum(float(v) for v in loss_items.values()) / len(loss_items))
+    if isinstance(loss_items, (list, tuple)) and loss_items:
+        return float(sum(float(v) for v in loss_items) / len(loss_items))
+    return 0.0
 
 
 def _metrics_dict(metrics_obj: object | None) -> dict[str, float]:
@@ -257,9 +278,9 @@ def run_training(
     def on_fit_epoch_end(trainer):
         """Callback: write progress after each epoch."""
         data = {
-            "epoch": trainer.epoch + 1,
+            "epoch": min(trainer.epoch + 1, trainer.epochs),
             "totalEpochs": trainer.epochs,
-            "loss": float(trainer.loss_items.mean()) if hasattr(trainer, "loss_items") else 0,
+            "loss": _loss_value(getattr(trainer, "loss_items", None)),
         }
         trainer_metrics = getattr(trainer, "metrics", None)
         if trainer_metrics:
@@ -312,7 +333,7 @@ def run_training(
     # 5. Update DB
     from ..models.train import TrainingJob
 
-    job = db.query(TrainingJob).filter(TrainingJob.id == job_id).first()
+    job = db.query(TrainingJob).filter(TrainingJob.id == _as_uuid(job_id)).first()
     if job:
         job.status = "completed"
         job.metrics = metrics
@@ -331,11 +352,11 @@ _model_cache: dict[str, object] = {}
 
 
 def _get_model(model_path: str, device: str) -> object:
-    # 限制最多缓存3个模型，采用简易LRU算法
-    if model_path in _model_cache:
-        # 移到末尾表示最近使用过
-        val = _model_cache.pop(model_path)
-        _model_cache[model_path] = val
+    # Device is part of the cache key so a CPU/GPU switch loads a fresh model.
+    cache_key = f"{model_path}::{device}"
+    if cache_key in _model_cache:
+        val = _model_cache.pop(cache_key)
+        _model_cache[cache_key] = val
     else:
         if len(_model_cache) >= 3:
             oldest = next(iter(_model_cache))
@@ -344,9 +365,9 @@ def _get_model(model_path: str, device: str) -> object:
 
         from ultralytics import YOLO
 
-        logger.info("Loading YOLO model: %s", model_path)
-        _model_cache[model_path] = YOLO(model_path)
-    return _model_cache[model_path]
+        logger.info("Loading YOLO model: %s (device=%s)", model_path, device)
+        _model_cache[cache_key] = YOLO(model_path)
+    return _model_cache[cache_key]
 
 
 def predict_trained_model(
@@ -412,7 +433,7 @@ def run_training_safe(
 
     db = SessionLocal()
     try:
-        job = db.query(TrainingJob).filter(TrainingJob.id == job_id).first()
+        job = db.query(TrainingJob).filter(TrainingJob.id == _as_uuid(job_id)).first()
         if job:
             job.status = "running"
             db.commit()
@@ -432,7 +453,7 @@ def run_training_safe(
     except Exception as exc:
         logger.exception("Training job %s failed", job_id)
         try:
-            job = db.query(TrainingJob).filter(TrainingJob.id == job_id).first()
+            job = db.query(TrainingJob).filter(TrainingJob.id == _as_uuid(job_id)).first()
             if job:
                 job.status = "failed"
                 job.error_message = str(exc)[:1000]

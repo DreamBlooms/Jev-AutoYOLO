@@ -1,6 +1,6 @@
-# VLM-AutoYOLO 项目架构设计图
+# Jev-AutoYOLO 项目架构设计图
 
-根据对当前代码库的分析，这是一个全栈架构的 AI 平台，主要用于基于视觉语言模型（VLM）的自动标注以及 YOLO 模型训练。项目采用了现代化的前后端分离架构，并通过 Docker Compose 进行容器化部署。
+根据对当前代码库的分析，这是一个全栈架构的 AI 平台，主要用于基于 Jev（TypeSafe System One）的自动标注、可选本地 VLM 回退以及 YOLO 模型训练。项目采用现代化的前后端分离架构，默认通过 `deploy.sh` 原生部署；仓库同时保留可选的 `docker-compose.yml`。
 
 以下是系统的整体架构图：
 
@@ -42,7 +42,7 @@ graph TD
     %% AI 引擎层
     subgraph AIEngine ["AI & ML 引擎 (PyTorch / OpenCV)"]
         direction TB
-        VLM["VLM 自动标注服务 (Transformers)"]
+        VLM["Jev 自动标注服务 (TypeSafe System One)"]
         YOLO["YOLO 训练与推理服务"]
         SAM3["SAM3 图像分割服务 (sam3_server.py)"]
         CV["图像预处理 (OpenCV + Pillow)"]
@@ -57,9 +57,9 @@ graph TD
         Alembic -.-> PG
     end
 
-    %% 基础设施层
-    subgraph Infrastructure ["基础设施层 (Docker Compose)"]
-        Docker["容器化编排 (Frontend / Backend / DB)"]
+    %% 部署层
+    subgraph Infrastructure ["部署"]
+        Docker["deploy.sh 原生部署（可选 docker-compose）"]
     end
 
     %% 关联连线
@@ -96,18 +96,20 @@ graph TD
 
 ### 3. AI & ML 引擎 (AI Engine)
 - 此层主要与机器学习相关，是自动标注和模型训练的核心：
-  - **VLM 自动标注**：使用 `Transformers` 库加载和运行大规模视觉语言模型进行零样本（Zero-shot）标注。
-  - **SAM3 服务**：项目中存在独立的 `sam3_server.py`，可能用于高质量的图像分割。
-  - **YOLO 训练**：集成目标检测模型（YOLO）的训练流程。
-  - 依赖 `PyTorch` (`torch`) 和 `OpenCV` 进行张量计算和图像处理。
+  - **Jev 自动标注**：通过 TypeSafe System One（或 OpenRouter Decisions）执行 Box / Noul / Choice 判断；可选回退到本地 LocateAnything-3B。
+  - **SAM2 / SAM3 分割**：SAM2 根据 BBox 生成 mask；SAM3 通过独立 `sam3_server.py` 完成文本驱动的检测与分割。
+  - **YOLO 训练与验证**：集成目标检测/分割训练流程，并支持训练模型验证。
+  - **模型下载**：可从网页通过 ModelScope（或 HuggingFace）拉取 VLM / SAM2 / SAM3 并初始化，支持字节级下载进度、缓存复用和单任务互斥。
+  - 依赖 `PyTorch` (`torch`) 和 `OpenCV` 进行张量计算与图像处理；支持 CPU、CUDA、MPS 和 AMD ROCm。
 
 ### 4. 数据与存储层 (Storage)
 - **关系型数据库**：使用 `PostgreSQL 16` 存储结构化数据（如任务、用户配置、标注元数据等）。
 - **数据库迁移**：使用 `Alembic` 管理数据库 schema 的版本迭代。
 - **文件存储**：本地挂载的 Volume（如 `model-cache`, `uploads`, `training_runs`）用于存储权重文件、上传的图片和训练输出。
 
-### 5. 基础设施 (Infrastructure)
-- 项目依赖 `docker-compose.yml` 实现了一键部署，将前端 (`frontend`)、后端 (`backend`) 和 数据库 (`db`) 编排在同一网络中，简化了环境配置。
+### 5. 部署 (Deployment)
+- 默认使用根目录的 `deploy.sh` 完成依赖安装、前端构建、数据库迁移和服务启动，后端同时提供构建后的前端页面。
+- `docker-compose.yml` 作为可选容器化方案保留，不作为默认部署路径。
 
 ## 核心业务流程 (Workflow)
 
@@ -118,7 +120,8 @@ sequenceDiagram
     actor User as 用户
     participant UI as 前端页面
     participant API as 后端 API
-    participant VLM as VLM (LocateAnything)
+    participant JEV as Jev / TypeSafe
+    participant VLM as 本地 VLM (LocateAnything)
     participant SAM as SAM2 / SAM3
     participant DB as 数据库/文件系统
     participant YOLO as YOLO 训练引擎
@@ -135,13 +138,17 @@ sequenceDiagram
     rect rgb(255, 245, 238)
     Note over User,DB: 2. 智能预标注与精修
     User->>UI: 输入开放词汇提示词 (如"红色汽车")，选择标注模型
-    alt VLM 目标检测
-        UI->>API: 发起 VLM 检测请求
-        API->>VLM: 调用 LocateAnything 模型进行零样本检测
-        VLM-->>API: 返回边界框 (BBox) 坐标
+    alt Jev 检测
+        UI->>API: 发起 Jev 检测请求（可附加 state / instructions）
+        API->>JEV: 发送 Box / Noul / Choice 问题
+        JEV-->>API: 返回归一化框与结构化答案
         opt 启用 SAM2 分割
             API->>SAM: 根据 BBox 提示生成精确像素级 Mask
             SAM-->>API: 返回 Polygon 顶点数据
+        end
+        opt Jev 不可用或强制本地 VLM
+            API->>VLM: 调用本地 LocateAnything-3B
+            VLM-->>API: 返回边界框 (BBox) 坐标
         end
     else SAM3 端到端检测与分割
         UI->>API: 发起 SAM3 文本驱动推理请求

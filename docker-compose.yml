@@ -16,10 +16,12 @@ services:
     restart: unless-stopped
 
   backend:
-    image: ghcr.io/somnusochi/vlm-autoyolo-backend:latest
+    image: ${BACKEND_IMAGE:-jev-autoyolo-backend:local}
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        INSTALL_SAM3: ${INSTALL_SAM3:-false}
     ports:
       - "8000:8000"
       - "8002:8002"
@@ -28,8 +30,17 @@ services:
       PYTHONPATH: /app
       HF_HOME: /home/appuser/.cache/huggingface
       HF_TOKEN: ${HF_TOKEN:-}
+      DEVICE: ${DEVICE:-}
+      ANNOTATION_ONLY: ${ANNOTATION_ONLY:-false}
+      JEV_PROVIDER: ${JEV_PROVIDER:-typesafe}
+      TYPESAFE_API_KEY: ${TYPESAFE_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      JEV_MODEL: ${JEV_MODEL:-}
+      JEV_MULTI_INSTANCE: ${JEV_MULTI_INSTANCE:-auto}
+      JEV_FALLBACK_TO_LOCAL: ${JEV_FALLBACK_TO_LOCAL:-true}
     volumes:
       - model-cache:/app/model
+      - modelscope-models:/app/modelscope_models
       - sam3-cache:/home/appuser/.cache/huggingface
       - uploads:/app/uploads
       - training-data:/app/training_runs
@@ -46,7 +57,7 @@ services:
               capabilities: [gpu]
 
   frontend:
-    image: ghcr.io/somnusochi/vlm-autoyolo-frontend:latest
+    image: ${FRONTEND_IMAGE:-jev-autoyolo-frontend:local}
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -59,6 +70,7 @@ services:
 volumes:
   pgdata:
   model-cache:
+  modelscope-models:
   sam3-cache:
   uploads:
   training-data:

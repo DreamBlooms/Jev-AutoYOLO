@@ -1,6 +1,6 @@
 {
   "common": {
-    "annotate": "VLM Annotate",
+    "annotate": "Jev Annotate",
     "validate": "YOLO Validate",
     "image": "Image",
     "video": "Video",
@@ -250,7 +250,6 @@
     "statusCompleted": "Completed",
     "statusFailed": "Failed",
     "statusCancelled": "Cancelled",
-    "downloadDataset": "Download Dataset",
     "importDataset": "Import Dataset",
     "downloadAllYoloSeg": "Export All YOLO Seg",
     "datasetDownloaded": "Dataset downloaded successfully",
@@ -297,16 +296,58 @@
     "status": "{{completed}} / {{total}} completed",
     "cancel": "Cancel Batch"
   },
+  "deviceSelector": {
+    "label": "Inference device",
+    "auto": "Auto",
+    "cpu": "CPU",
+    "cuda": "GPU (CUDA)",
+    "rocm": "GPU (ROCm)",
+    "mps": "GPU (MPS)",
+    "switching": "Switching device and unloading models...",
+    "active": "Active: {{device}}",
+    "success": "Inference device set to {{device}}",
+    "failed": "Failed to switch inference device"
+  },
+  "jevAdvanced": {
+    "title": "Advanced Jev state & instructions",
+    "hint": "Optional. Extra state is merged into the Jev request; reference keys in instructions with backticks, e.g. `scene`. Extra instructions are appended to every question.",
+    "stateLabel": "Extra state (JSON object, array, or string)",
+    "statePlaceholder": "{\"scene\": \"indoor living room\", \"notes\": \"cats may be partially hidden\"}",
+    "instructionsLabel": "Extra instructions",
+    "instructionsPlaceholder": "Pay attention to partially occluded cats and reflections.",
+    "invalidJson": "Invalid JSON",
+    "clear": "Clear",
+    "perCategoryLabel": "Per-category instructions",
+    "perCategoryPlaceholder": "Extra instruction for this category only."
+  },
+  "annotationExport": {
+    "title": "Export Annotations",
+    "hint": "Annotation-only mode: training and model validation are disabled. Export saved labels in any supported format.",
+    "exportAll": "Export All ({{count}})",
+    "exporting": "Exporting...",
+    "success": "Annotations exported",
+    "failed": "Export failed"
+  },
   "modelStatus": {
-    "loaded": "VLM Model Loaded",
-    "unloaded": "VLM Model Unloaded",
+    "jevNotConfigured": "Jev not configured",
+    "vlmUnloadSuccess": "VLM model unloaded",
+    "vlmUnloadFailed": "Failed to unload VLM model",
+    "vlmNotConfigured": "VLM not configured",
+    "downloadInit": "Pull & init",
+    "downloadStarted": "Model download started",
+    "downloadFailed": "Failed to start model download",
+    "downloadHint": "Pull from ModelScope and initialize. VLM falls back to HuggingFace when no ModelScope mirror is configured.",
+    "stageDownload": "Downloading model...",
+    "stageInit": "Initializing model...",
+    "loaded": "Ready",
+    "unloaded": "Jev Unavailable",
     "download": "Downloading Model",
     "downloading": "Downloading Model...",
     "loading": "Loading to GPU...",
     "error": "Model Error",
     "unload": "Unload",
     "unloading": "Unloading...",
-    "unloadSuccess": "VLM model unloaded",
+    "unloadSuccess": "Jev has no local model to unload",
     "unloadFailed": "Failed to unload model",
     "sam2Loaded": "SAM2 Model Loaded",
     "sam2Unloaded": "SAM2 Model Unloaded",
@@ -321,6 +362,10 @@
     "stageTokenizer": "Tokenizer...",
     "stageProcessor": "Processor...",
     "stageModel": "Model weights...",
-    "stageGpu": "Moving to GPU..."
+    "stageGpu": "Moving to GPU...",
+    "localModel": "Local model",
+    "remote": "Remote API",
+    "localFallback": "Local fallback",
+    "notConfigured": "Not configured"
   }
 }

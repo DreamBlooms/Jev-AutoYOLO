@@ -50,6 +50,12 @@ body {
 .dark .bg-gray-50 { background-color: var(--color-bg-secondary); }
 .dark .bg-gray-100 { background-color: var(--color-bg-tertiary); }
 .dark .bg-gray-200 { background-color: var(--color-bg-tertiary); }
+/* Tailwind opacity variants used by tabs and toolbars */
+.dark .bg-gray-100\/80 { background-color: var(--color-bg-tertiary); }
+.dark .bg-gray-200\/50 { background-color: var(--color-bg-tertiary); }
+.dark .hover\:bg-gray-200\/50:hover { background-color: var(--color-bg-tertiary); }
+.dark .bg-white\/60 { background-color: rgba(5, 5, 5, 0.7); }
+.dark .bg-white\/80 { background-color: rgba(5, 5, 5, 0.85); }
 
 .dark .text-gray-900 { color: var(--color-text-primary); }
 .dark .text-gray-800 { color: var(--color-text-primary); }

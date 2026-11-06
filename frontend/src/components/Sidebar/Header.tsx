@@ -8,7 +8,7 @@ export function SidebarHeader() {
 
   return (
     <div className="flex justify-between items-center mb-1">
-      <span className="text-xs font-bold text-gray-400 tracking-wider">VLM-AutoYOLO</span>
+      <span className="text-xs font-bold text-gray-400 tracking-wider">Jev-AutoYOLO</span>
       <div className="flex gap-1.5 items-center">
         {/* Theme toggle */}
         <div className="flex rounded border border-gray-200 bg-gray-50 overflow-hidden h-7">

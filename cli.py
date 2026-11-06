@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""VLM-AutoYOLO CLI — one command to setup and launch."""
+"""Jev-AutoYOLO CLI — one command to setup and launch."""
 
 import json
 import os
+import re
 import shutil
 import signal
 import socket
@@ -30,22 +31,48 @@ FRONTEND_PORT = int(os.environ.get("FRONTEND_PORT", 5173))
 
 # ── Utilities ──────────────────────────────────────────
 
-def green(s):   return f"\033[92m{s}\033[0m"
-def red(s):     return f"\033[91m{s}\033[0m"
-def cyan(s):    return f"\033[96m{s}\033[0m"
-def yellow(s):  return f"\033[93m{s}\033[0m"
 
-def step(msg):   print(f"  {cyan(msg)}")
-def ok(msg):     print(f"  {green('✓')} {msg}")
-def warn(msg):   print(f"  {yellow('!')} {msg}")
-def fail(msg):   print(f"  {red('✗')} {msg}"); sys.exit(1)
+def green(s):
+    return f"\033[92m{s}\033[0m"
+
+
+def red(s):
+    return f"\033[91m{s}\033[0m"
+
+
+def cyan(s):
+    return f"\033[96m{s}\033[0m"
+
+
+def yellow(s):
+    return f"\033[93m{s}\033[0m"
+
+
+def step(msg):
+    print(f"  {cyan(msg)}")
+
+
+def ok(msg):
+    print(f"  {green('✓')} {msg}")
+
+
+def warn(msg):
+    print(f"  {yellow('!')} {msg}")
+
+
+def fail(msg):
+    print(f"  {red('✗')} {msg}")
+    sys.exit(1)
+
 
 def run(cmd, **kwargs):
     kwargs.setdefault("check", True)
     return subprocess.run(cmd, **kwargs)
 
+
 def run_output(cmd, **kwargs):
     return subprocess.run(cmd, capture_output=True, text=True, **kwargs).stdout.strip()
+
 
 def _find_tool(name):
     candidates = (name, f"{name}.cmd") if IS_WIN else (name,)
@@ -55,6 +82,7 @@ def _find_tool(name):
             return path
     return None
 
+
 def _tool_command(name, *args):
     executable = _find_tool(name)
     if not executable:
@@ -63,6 +91,7 @@ def _tool_command(name, *args):
     if IS_WIN and Path(executable).suffix.lower() in {".cmd", ".bat"}:
         return ["cmd", "/d", "/c", *command]
     return command
+
 
 def is_port_open(port):
     try:
@@ -74,6 +103,7 @@ def is_port_open(port):
 
 # ── Prereq checks ──────────────────────────────────────
 
+
 def check_python():
     step("Checking Python 3.12+...")
     v = sys.version_info
@@ -81,6 +111,7 @@ def check_python():
         ok(f"Python {v.major}.{v.minor}.{v.micro}")
         return
     fail(f"Python 3.12+ required, found {v.major}.{v.minor}")
+
 
 def check_node():
     step("Checking Node.js 22+...")
@@ -93,6 +124,7 @@ def check_node():
         fail(f"Node.js 22+ required, found {out}")
     except Exception:
         fail("Node.js not found. Install: https://nodejs.org")
+
 
 def check_pnpm():
     step("Checking pnpm...")
@@ -111,6 +143,7 @@ def check_pnpm():
     except Exception:
         fail("Failed to install pnpm. Install manually: npm install -g pnpm")
 
+
 def check_ffmpeg():
     step("Checking ffmpeg...")
     if shutil.which("ffmpeg"):
@@ -118,6 +151,7 @@ def check_ffmpeg():
         return
     warn("ffmpeg not found — video features will not work")
     print("    Install: brew install ffmpeg / apt install ffmpeg")
+
 
 def check_postgres():
     step("Checking PostgreSQL...")
@@ -133,6 +167,7 @@ def check_postgres():
 
 # ── Quick pre-flight for start ─────────────────────────
 
+
 def ensure_setup_done():
     """Lightweight check — warn if deps look missing, but don't fail."""
     if not VENV.exists():
@@ -143,6 +178,7 @@ def ensure_setup_done():
 
 # ── Setup ──────────────────────────────────────────────
 
+
 def setup_venv():
     step("Setting up Python virtual environment...")
     if VENV.exists():
@@ -152,11 +188,39 @@ def setup_venv():
     run([str(PIP), "install", "--upgrade", "pip"])
     ok("created")
 
+
+def hf_repo_cache_dir(model_id: str) -> Path:
+    """Resolve the Hugging Face repo cache without relying on backend/.env."""
+    hub_cache = os.environ.get("HF_HUB_CACHE")
+    if hub_cache:
+        base = Path(hub_cache)
+    else:
+        base = Path(os.environ.get("HF_HOME", Path.home() / ".cache" / "huggingface")) / "hub"
+    return base / f"models--{model_id.replace('/', '--')}"
+
+
+def detect_rocm_version(version_file: Path | None = None) -> str:
+    """Return the installed ROCm major.minor (e.g. '7.2'), or '' when absent."""
+    path = version_file or Path(os.environ.get("ROCM_PATH", "/opt/rocm")) / ".info" / "version"
+    try:
+        raw = path.read_text().strip()
+    except OSError:
+        return ""
+    match = re.match(r"(\d+)\.(\d+)", raw)
+    return f"{match.group(1)}.{match.group(2)}" if match else ""
+
+
 def install_python_deps():
     step("Installing Python dependencies (may take a few minutes)...")
     req = BACKEND / "requirements.txt"
+    rocm = detect_rocm_version()
+    if rocm:
+        index = os.environ.get("ROCM_TORCH_INDEX", f"https://download.pytorch.org/whl/rocm{rocm}")
+        step(f"ROCm {rocm} detected — installing ROCm PyTorch from {index}")
+        run([str(PIP), "install", "torch", "torchvision", "--index-url", index])
     run([str(PIP), "install", "-r", str(req)])
     ok("done")
+
 
 def install_node_deps():
     step("Installing Node.js dependencies (may take a few minutes)...")
@@ -166,6 +230,7 @@ def install_node_deps():
     run(_tool_command("pnpm", "install"), cwd=FRONTEND)
     ok("done")
 
+
 def check_db_config():
     env_file = BACKEND / ".env"
     env_example = BACKEND / ".env.example"
@@ -173,6 +238,7 @@ def check_db_config():
         step("Creating .env from .env.example...")
         shutil.copy(env_example, env_file)
         ok("done")
+
 
 def run_migrations():
     step("Running database migrations...")
@@ -183,36 +249,100 @@ def run_migrations():
     )
     ok("database migrations completed")
 
+
+def check_jev_key():
+    """Check whether the hosted Jev API key is configured."""
+    step("Checking Jev API key...")
+    env_file = BACKEND / ".env"
+    values = dict(os.environ)
+    if env_file.exists():
+        for line in env_file.read_text().splitlines():
+            if "=" in line and not line.strip().startswith("#"):
+                key, value = line.split("=", 1)
+                values.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+    provider = values.get("JEV_PROVIDER", "typesafe").strip().lower()
+    key_name = "OPENROUTER_API_KEY" if provider == "openrouter" else "TYPESAFE_API_KEY"
+    if values.get(key_name):
+        ok(f"{key_name} configured ({provider})")
+        return True
+    warn(f"{key_name} not set — Jev will be unavailable until configured")
+    if provider == "openrouter":
+        print(
+            f"    Create a key at {cyan('https://openrouter.ai/')}"
+            f" and add it to {cyan('backend/.env')}:"
+        )
+        print("      JEV_PROVIDER=openrouter")
+        print("      OPENROUTER_API_KEY=your_key_here")
+        print("      JEV_MODEL=~typesafe/jev-latest")
+    else:
+        print(
+            f"    Create a key at {cyan('https://console.typesafe.ai/')}"
+            f" and add it to {cyan('backend/.env')}:"
+        )
+        print("      TYPESAFE_API_KEY=your_key_here")
+    print("    Local LocateAnything fallback still works if downloaded: --models=vlm")
+    return False
+
+
 def check_sam3_token():
-    """Guide SAM3 setup — needs HF_TOKEN for the gated facebook/sam3 model."""
+    """Check SAM3 access via environment token, HF cache, or ModelScope cache."""
     step("Checking SAM3 model access...")
 
-    # Check if HF_TOKEN is already set
-    env_file = BACKEND / ".env"
-    if env_file.exists():
-        content = env_file.read_text()
-        if "HF_TOKEN" in content and "HF_TOKEN=" in content:
-            val = content.split("HF_TOKEN=")[-1].split("\n")[0].strip()
-            if val and val != "${HF_TOKEN:-}":
-                ok("HF_TOKEN configured")
-                return True
+    if os.environ.get("HF_TOKEN"):
+        ok("HF_TOKEN configured")
+        return True
 
-    print(f"\n  {yellow('SAM3 requires a HuggingFace access token.')}")
+    local_path = os.environ.get("SAM3_MODEL_PATH", "").strip()
+    if local_path and (Path(local_path) / "config.json").is_file():
+        ok("SAM3 local model configured")
+        return True
+
+    modelscope_dir = BACKEND / "modelscope_models" / "sam3"
+    if (modelscope_dir / "config.json").is_file() and (
+        (modelscope_dir / "model.safetensors").is_file() or (modelscope_dir / "sam3.pt").is_file()
+    ):
+        ok("SAM3 model already downloaded via ModelScope")
+        return True
+
+    if hf_repo_cache_dir("facebook/sam3").exists():
+        ok("SAM3 model already cached in HuggingFace")
+        return True
+
+    print(f"\n  {yellow('SAM3 requires a HuggingFace access token or a local model.')}")
     print("  To use SAM3 text-driven detection + segmentation:")
     print()
     print(f"  1. Visit {cyan('https://huggingface.co/facebook/sam3')}")
-    print("     Click \"Agree and access repository\"")
+    print('     Click "Agree and access repository"')
     print(f"  2. Create a Read token at {cyan('https://huggingface.co/settings/tokens')}")
-    print(f"  3. Set it in {cyan('backend/.env')}:")
-    print("       HF_TOKEN=hf_your_token_here")
+    print("  3. Set it as an environment variable:")
+    print(f"       Windows:     {cyan('setx HF_TOKEN hf_your_token_here')}")
+    print(f"       Linux/macOS: {cyan('export HF_TOKEN=hf_your_token_here')}")
+    print("     Or download SAM3 from the web UI using ModelScope.")
     print()
-    print(f"  {yellow('Skip this step if you only use VLM+SAM2 mode.')}")
+    print(f"  {yellow('Skip this step if you only use Jev+SAM2 mode.')}")
     return False
+
 
 SAM2_MODEL_ID = "facebook/sam2.1-hiera-base-plus"
 
+
+def _has_model_weights(directory: Path) -> bool:
+    if not (directory / "config.json").is_file():
+        return False
+    return any(
+        path.is_file() and path.stat().st_size > 1024 * 1024
+        for pattern in ("*.safetensors", "*.bin", "*.pt")
+        for path in directory.glob(pattern)
+    )
+
+
 def download_vlm():
     step("VLM model (LocateAnything-3B, ~6GB)...")
+    modelscope_dir = BACKEND / "modelscope_models" / "vlm"
+    if _has_model_weights(modelscope_dir):
+        ok("already downloaded via ModelScope")
+        return
     model_dir = BACKEND / "model"
     required_files = (
         "config.json",
@@ -239,9 +369,12 @@ def download_vlm():
     print(f"  Downloading missing model files to {model_dir}... (~10-30 min)")
     try:
         run(
-            [str(PYTHON), "-c",
-             "from huggingface_hub import snapshot_download; "
-             "snapshot_download('nvidia/LocateAnything-3B', local_dir='model')"],
+            [
+                str(PYTHON),
+                "-c",
+                "from huggingface_hub import snapshot_download; "
+                "snapshot_download('nvidia/LocateAnything-3B', local_dir='model')",
+            ],
             cwd=BACKEND,
         )
         ok("downloaded")
@@ -249,18 +382,30 @@ def download_vlm():
         warn(f"Download failed: {e}")
         print("  Will download on first detection instead.")
 
+
 def download_sam2():
     step("SAM2 model (facebook/sam2.1-hiera-base-plus, ~2.4GB)...")
-    cache_dir = Path.home() / ".cache" / "huggingface" / "hub" / "models--facebook--sam2.1-hiera-base-plus"
+    configured = os.environ.get("SAM2_CHECKPOINT_PATH", "").strip()
+    if configured and Path(configured).is_file():
+        ok("already available via SAM2_CHECKPOINT_PATH")
+        return
+    modelscope_checkpoint = BACKEND / "modelscope_models" / "sam2" / "sam2.1_hiera_base_plus.pt"
+    if modelscope_checkpoint.is_file():
+        ok("already downloaded via ModelScope")
+        return
+    cache_dir = hf_repo_cache_dir(SAM2_MODEL_ID)
     if cache_dir.exists() and any(cache_dir.rglob("sam2.1_hiera_base_plus.pt")):
-        ok("already cached")
+        ok("already cached in HuggingFace")
         return
     print("  Downloading SAM2... (~5-15 min)")
     try:
         run(
-            [str(PYTHON), "-c",
-             "from sam2.build_sam import build_sam2_hf; "
-             f"build_sam2_hf('{SAM2_MODEL_ID}', device='cpu')"],
+            [
+                str(PYTHON),
+                "-c",
+                "from sam2.build_sam import build_sam2_hf; "
+                f"build_sam2_hf('{SAM2_MODEL_ID}', device='cpu')",
+            ],
             cwd=BACKEND,
         )
         ok("downloaded")
@@ -268,34 +413,48 @@ def download_sam2():
         warn(f"Download failed: {e}")
         print("  SAM2 will download on first use.")
 
+
 def download_models(selection="all"):
-    """Download selected models. selection: 'all' | 'vlm' | 'sam2' | 'vlm,sam2'"""
+    """Download selected local models. selection: 'all' | 'jev' | 'vlm' | 'sam2'"""
     selected = set(selection.replace(" ", "").split(","))
 
     if "all" in selected:
-        selected = {"vlm", "sam2"}
+        selected = {"jev", "sam2"}
 
     for m in sorted(selected):
-        if m == "vlm":
+        if m == "jev":
+            step("Jev (TypeSafe System One, hosted API)...")
+            ok("nothing to download")
+            print(
+                f"    Set {cyan('TYPESAFE_API_KEY')} in backend/.env — see https://docs.typesafe.ai/"
+            )
+            print("    Optional local fallback: python cli.py download --models=vlm")
+        elif m == "vlm":
             download_vlm()
         elif m == "sam2":
             download_sam2()
         else:
-            warn(f"Unknown model: {m} (valid: vlm, sam2)")
+            warn(f"Unknown model: {m} (valid: jev, vlm, sam2)")
 
     if not selected:
-        print("  No models selected. Use --models vlm|sam2|all")
+        print("  No models selected. Use --models jev|vlm|sam2|all")
 
 
 # ── Start / Stop ───────────────────────────────────────
 
+
 def _save_pids(backend_pid, frontend_pid):
-    PIDFILE.write_text(json.dumps({
-        "backend": backend_pid,
-        "frontend": frontend_pid,
-        "backend_port": BACKEND_PORT,
-        "frontend_port": FRONTEND_PORT,
-    }))
+    PIDFILE.write_text(
+        json.dumps(
+            {
+                "backend": backend_pid,
+                "frontend": frontend_pid,
+                "backend_port": BACKEND_PORT,
+                "frontend_port": FRONTEND_PORT,
+            }
+        )
+    )
+
 
 def _load_pids():
     if not PIDFILE.exists():
@@ -305,10 +464,13 @@ def _load_pids():
     except (json.JSONDecodeError, OSError):
         return None
 
+
 def start_backend():
     step(f"Starting backend on port {BACKEND_PORT}...")
     if is_port_open(BACKEND_PORT):
-        warn(f"Port {BACKEND_PORT} already in use. Try: BACKEND_PORT={BACKEND_PORT + 1} python3 cli.py start")
+        warn(
+            f"Port {BACKEND_PORT} already in use. Try: BACKEND_PORT={BACKEND_PORT + 1} python3 cli.py start"
+        )
         return None
     proc = subprocess.Popen(
         [str(UVICORN), "app.main:app", "--host", "0.0.0.0", "--port", str(BACKEND_PORT)],
@@ -316,6 +478,7 @@ def start_backend():
         env={**os.environ, "PYTHONPATH": str(BACKEND)},
     )
     import urllib.request
+
     for _ in range(30):
         time.sleep(0.5)
         if proc.poll() is not None:
@@ -329,10 +492,13 @@ def start_backend():
     proc.kill()
     fail("Backend failed to start — check backend logs for errors.")
 
+
 def start_frontend():
     step(f"Starting frontend on port {FRONTEND_PORT}...")
     if is_port_open(FRONTEND_PORT):
-        warn(f"Port {FRONTEND_PORT} already in use. Try: FRONTEND_PORT={FRONTEND_PORT + 1} python3 cli.py start")
+        warn(
+            f"Port {FRONTEND_PORT} already in use. Try: FRONTEND_PORT={FRONTEND_PORT + 1} python3 cli.py start"
+        )
         return None
     proc = subprocess.Popen(
         _tool_command("pnpm", "dev", "--port", str(FRONTEND_PORT)),
@@ -342,6 +508,7 @@ def start_frontend():
         stderr=subprocess.DEVNULL,
     )
     import urllib.request
+
     for _ in range(30):
         time.sleep(0.5)
         if proc.poll() is not None:
@@ -357,7 +524,7 @@ def start_frontend():
 
 
 def cmd_start():
-    print(green("VLM-AutoYOLO\n"))
+    print(green("Jev-AutoYOLO\n"))
     ensure_setup_done()
 
     backend = start_backend()
@@ -373,13 +540,13 @@ def cmd_start():
         sys.exit(1)
 
     print(f"\n{'━' * 46}")
-    print(f"  {green('VLM-AutoYOLO')}")
+    print(f"  {green('Jev-AutoYOLO')}")
     print(f"  前端:   {cyan(f'http://localhost:{FRONTEND_PORT}')}")
     print(f"  后端:   {cyan(f'http://localhost:{BACKEND_PORT}')}")
     print(f"  API:    {cyan(f'http://localhost:{BACKEND_PORT}/docs')}")
     print(f"  {red('Ctrl+C')} 停止")
     print(f"{'━' * 46}")
-    print(f"  💡 {yellow('提示: VLM 和 SAM 模型采用【惰性加载】策略。')}")
+    print(f"  💡 {yellow('提示: Jev 和 SAM 模型采用【惰性加载】策略。')}")
     print(f"     {yellow('在网页端首次执行检测前，它们会显示为“未加载”状态。')}")
     print(f"{'━' * 46}\n")
 
@@ -398,7 +565,7 @@ def _kill_port(port):
     """Kill process listening on a port (fallback when no PID file)."""
     try:
         if IS_WIN:
-            run_output(f'netstat -ano | findstr :{port}', shell=True)
+            run_output(f"netstat -ano | findstr :{port}", shell=True)
         else:
             out = run_output(["lsof", "-ti", f":{port}"])
             for pid_str in out.split("\n"):
@@ -408,6 +575,7 @@ def _kill_port(port):
                     pass
     except Exception:
         pass
+
 
 def cmd_stop():
     pids = _load_pids()
@@ -456,8 +624,9 @@ def cmd_status():
 
 # ── Main ────────────────────────────────────────────────
 
+
 def cmd_setup(skip_models=False, model_selection="all"):
-    print(green("VLM-AutoYOLO Setup\n"))
+    print(green("Jev-AutoYOLO Setup\n"))
     check_python()
     check_node()
     check_pnpm()
@@ -470,11 +639,13 @@ def cmd_setup(skip_models=False, model_selection="all"):
     run_migrations()
     if not skip_models:
         download_models(model_selection)
+    check_jev_key()
     check_sam3_token()
     print(f"\n{green('Setup complete!')} Run: {cyan('python cli.py start')}")
 
+
 def print_help():
-    print("""VLM-AutoYOLO CLI
+    print("""Jev-AutoYOLO CLI
 
 Usage: python3 cli.py <command> [options]
 
@@ -487,18 +658,21 @@ Commands:
   download       Download/re-download models only
 
 Options:
-  --models=vlm|sam2|all   Select which models to download (default: all)
-                          vlm  = LocateAnything-3B (~6GB, required)
+  --models=jev|vlm|sam2|all   Select which models to prepare (default: all)
+                          jev  = hosted Jev API (TYPESAFE_API_KEY or OPENROUTER_API_KEY)
+                          vlm  = local LocateAnything-3B fallback (~6GB)
                           sam2 = SAM2.1 segmentation (~2.4GB, optional)
-                          all  = both
-                          Use comma for multiple: --models=vlm,sam2
+                          all  = jev + sam2
+                          Use comma for multiple: --models=jev,vlm,sam2
   --no-models              Skip model download entirely
   --help, -h               Show this help
 
 Environment:
-  BACKEND_PORT   Backend port (default 8000)
-  FRONTEND_PORT  Frontend port (default 5173)
+  BACKEND_PORT     Backend port (default 8000)
+  FRONTEND_PORT    Frontend port (default 5173)
+  ROCM_TORCH_INDEX Override the ROCm PyTorch wheel index (auto-detected)
 """)
+
 
 def main():
     args = sys.argv[1:]
@@ -536,6 +710,7 @@ def main():
         print(f"Unknown command: {cmd}")
         print_help()
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

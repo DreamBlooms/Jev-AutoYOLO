@@ -13,7 +13,7 @@ function iou(a: BBox, b: BBox): number {
 }
 
 function nmsFilter(boxes: BBox[], iouThreshold: number = 0.5): BBox[] {
-  // VLM outputs in confidence order, keep earlier (higher confidence) boxes
+  // Detection outputs in confidence order, keep earlier (higher confidence) boxes
   const kept: BBox[] = [];
   for (const box of boxes) {
     if (!kept.some((k) => iou(k, box) >= iouThreshold)) {

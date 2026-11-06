@@ -1,5 +1,31 @@
 # Changelog
 
+## v1.6.0 (2026-11-02)
+
+### Jev AutoYOLO
+- Feat: add Jev (TypeSafe System One) as the primary visual-grounding provider.
+- Feat: support `JEV_PROVIDER=openrouter` via OpenRouter `/api/alpha/decisions` with base64 image assets.
+- Feat: build Box/Noul/Choice requests, map normalized boxes to original pixels, and send `TypeSafe-Danger-Zone-Images: true`.
+- Feat: adaptive 2x2/3x3 tiling for multi-instance scenes, with per-class IoU deduplication.
+- Feat: optional SAM3 handoff for multi-instance detection via `JEV_MULTI_INSTANCE=sam3`.
+- Feat: local LocateAnything-3B fallback when Jev is unavailable or `TYPESAFE_API_KEY` is missing.
+- Feat: add `jev` / `jev+sam2` / `jev+sam3` model types while keeping legacy `vlm` records readable.
+- Feat: rename the UI, API title, CLI, and docs to Jev-AutoYOLO.
+- Fix: resize and pad images into Jev's 280–1568 px limits, including EXIF orientation handling.
+- Test: add Jev request/parse/image-prep/fallback/tiling tests and update CLI/strategy/API tests.
+- Feat: fall back to CPU when no CUDA/MPS device is available; local VLM, SAM2, SAM3, and YOLO validation use float32/CPU.
+- Feat: add `ANNOTATION_ONLY=true` runtime mode that disables only training while keeping validation, SAM, annotation, and multi-format export.
+- Feat: add `GET /api/v1/config` and an annotation export panel for no-GPU deployments.
+- Feat: add a local VLM (LocateAnything) tab alongside Jev and SAM3.
+- Feat: add runtime CPU/GPU switching via `POST /api/v1/config/device`; local models are unloaded on switch.
+- Feat: adapt device detection, dtype selection, SAM3 allocation, and CLI setup for AMD ROCm/HIP GPUs.
+- Feat: add web-triggered ModelScope downloads and initialization for VLM, SAM2, and SAM3.
+- Fix: show "VLM not configured" on the VLM tab instead of the Jev label.
+- Fix: report real download progress for ModelScope and HuggingFace downloads.
+- Fix: use a separate SAM3 environment so the main venv can keep transformers 4.57.1 for LocateAnything.
+- Fix: avoid duplicate model downloads with cached-file checks, a single global init lock, and cleanup of redundant ModelScope files.
+- Feat: optional advanced Jev request fields for extra state, global question instructions, and per-category instructions.
+
 ## v1.5.16 (2026-09-09)
 
 - Merge: PR #8 by PyTs1n9 with maintainer compatibility adjustments.
@@ -256,7 +282,7 @@
 
 ### Docs
 - Docs: update README (EN/ZH) — SAM3 architecture, SSE status, strategy pattern, detection parameters
-- Docs: update CLAUDE.md — startup env requirements, SAM3 architecture, SSE, directory conventions
+- Docs: update AGENTS.md — startup env requirements, SAM3 architecture, SSE, directory conventions
 - Docs: update API.md — `/detect` form parameters, model management SSE endpoint, detection object schema
 
 ## v1.5.2 (2026-06-05)
@@ -278,7 +304,7 @@
 - Docs: bump GPU VRAM minimum from 10GB to 12GB, add throttling warning
 - Docs: add star badge and star-history chart to READMEs (EN/ZH)
 - Docs: add badges and emoji pipeline flow to README headers (EN/ZH)
-- Docs: rewrite CLAUDE.md with architecture overview, commands, and workflow rules
+- Docs: rewrite AGENTS.md with architecture overview, commands, and workflow rules
 - CI: Docker and Release workflows now trigger on published Release, not every tag
 
 ## v1.4.9 (2026-06-05)

@@ -1,6 +1,6 @@
-# VLM-AutoYOLO Architecture Design Diagram
+# Jev-AutoYOLO Architecture Design Diagram
 
-Based on the analysis of the current codebase, this is a full-stack AI platform primarily designed for Visual Language Model (VLM) powered auto-labeling and YOLO model training. The project adopts a modern decoupled frontend and backend architecture, containerized and orchestrated using Docker Compose.
+Based on the analysis of the current codebase, this is a full-stack AI platform primarily designed for Jev (TypeSafe System One) powered auto-labeling, with an optional local VLM fallback, and YOLO model training. The project uses a decoupled frontend/backend architecture, deployed natively by default with `deploy.sh`; an optional `docker-compose.yml` is also kept.
 
 The overall system architecture diagram is as follows:
 
@@ -42,7 +42,7 @@ graph TD
     %% AI Engine Layer
     subgraph AIEngine ["AI & ML Engine (PyTorch / OpenCV)"]
         direction TB
-        VLM["VLM Auto-labeling Service (Transformers)"]
+        VLM["Jev Auto-labeling Service (TypeSafe System One + local fallback)"]
         YOLO["YOLO Training & Inference Service"]
         SAM3["SAM3 Segmentation Service (sam3_server.py)"]
         CV["Image Preprocessing (OpenCV + Pillow)"]
@@ -57,9 +57,9 @@ graph TD
         Alembic -.-> PG
     end
 
-    %% Infrastructure Layer
-    subgraph Infrastructure ["Infrastructure (Docker Compose)"]
-        Docker["Container Orchestration (Frontend/Backend/DB)"]
+    %% Deployment Layer
+    subgraph Infrastructure ["Deployment"]
+        Docker["deploy.sh native deployment (optional docker-compose)"]
     end
 
     %% Relationships
@@ -96,18 +96,20 @@ graph TD
 
 ### 3. AI & ML Engine
 - This layer is primarily related to machine learning, serving as the core for auto-labeling and model training:
-  - **VLM Auto-labeling**: Uses the `Transformers` library to load and run large-scale visual language models for zero-shot annotation.
-  - **SAM3 Service**: Contains an independent `sam3_server.py` for high-quality image segmentation.
-  - **YOLO Training**: Integrates the training pipeline for object detection models (YOLO).
-  - Relies on `PyTorch` (`torch`) and `OpenCV` for tensor computation and image processing.
+  - **Jev Auto-labeling**: Calls the hosted TypeSafe System One API (or OpenRouter Decisions) for Box/Noul/Choice judgments; falls back to a local LocateAnything-3B model when configured.
+  - **SAM2 / SAM3**: SAM2 refines boxes into masks; SAM3 runs text-driven detection + segmentation through `sam3_server.py`.
+  - **Web model download**: VLM, SAM2, and SAM3 can be pulled from ModelScope (or HuggingFace) and initialized from the UI.
+  - **YOLO Training & Validation**: Integrates training for detection/segmentation models and validates trained/uploaded models.
+  - Relies on `PyTorch` and `OpenCV`; supports CPU, NVIDIA CUDA, Apple MPS, and AMD ROCm.
 
 ### 4. Data & Storage Layer
 - **Relational Database**: Uses `PostgreSQL 16` for storing structured data (e.g., tasks, user settings, label metadata).
 - **Database Migration**: Uses `Alembic` to manage database schema versioning.
 - **File Storage**: Locally mounted Volumes (e.g., `model-cache`, `uploads`, `training_runs`) for storing model weights, uploaded images, and training outputs.
 
-### 5. Infrastructure
-- The project relies on `docker-compose.yml` for one-click deployment, orchestrating the frontend (`frontend`), backend (`backend`), and database (`db`) in the same network, simplifying environment configuration.
+### 5. Deployment
+- The default path uses the root `deploy.sh` to install dependencies, build the frontend, run migrations, and start the backend serving the built UI.
+- `docker-compose.yml` is kept as an optional containerized alternative, not the default deployment path.
 
 ## Core Business Workflow
 
@@ -118,7 +120,7 @@ sequenceDiagram
     actor User
     participant UI as Frontend Pages
     participant API as Backend API
-    participant VLM as VLM (LocateAnything)
+    participant VLM as Jev (TypeSafe) / local fallback
     participant SAM as SAM2 / SAM3
     participant DB as Database/FileSystem
     participant YOLO as YOLO Training Engine
@@ -135,10 +137,10 @@ sequenceDiagram
     rect rgb(255, 245, 238)
     Note over User,DB: 2. Smart Pre-annotation & Refinement
     User->>UI: Input open-vocabulary prompts (e.g., "red car"), select model
-    alt VLM Object Detection
-        UI->>API: Initiate VLM detection request
-        API->>VLM: Call LocateAnything for zero-shot detection
-        VLM-->>API: Return Bounding Box (BBox) coordinates
+    alt Jev Object Detection
+        UI->>API: Initiate Jev detection request
+        API->>VLM: Call Jev Box/Noul questions (fallback: LocateAnything)
+        VLM-->>API: Return normalized boxes; backend maps to pixels
         opt Enable SAM2 Segmentation
             API->>SAM: Generate precise pixel-level Mask based on BBox prompt
             SAM-->>API: Return Polygon vertex data

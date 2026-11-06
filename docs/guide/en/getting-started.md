@@ -36,8 +36,8 @@ After launching, access:
 
 Use the model selector at the top of the sidebar to switch between:
 
-### VLM + SAM2 (Default)
-- VLM (LocateAnything-3B) generates bounding boxes
+### Jev + SAM2 (Default)
+- Jev (TypeSafe, with local LocateAnything-3B fallback) generates bounding boxes
 - Optionally enable SAM2 segmentation for pixel-precise masks
 
 ### SAM3
@@ -66,7 +66,7 @@ Use the model selector at the top of the sidebar to switch between:
 
 ## 5. Manual Refinement
 
-VLM annotations may not be perfect and require manual adjustment:
+Jev annotations may not be perfect and require manual adjustment:
 
 ### View Mode
 - **All**: Display all detection boxes
@@ -159,7 +159,7 @@ After training completes, you can download:
 
 ## FAQ
 
-**Q: VLM can't detect the target?**
+**Q: Jev or the local VLM can't detect the target?**
 A: Try more specific category descriptions, or check image quality
 
 **Q: Out of VRAM during training?**

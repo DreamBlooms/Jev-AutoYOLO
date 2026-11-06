@@ -29,6 +29,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/train", tags=["train"])
 
 
+def _ensure_training_enabled() -> None:
+    if settings.annotation_only:
+        raise HTTPException(403, "Training is disabled in annotation-only mode")
+
+
 @router.get("/variants")
 def list_variants() -> APIResponse:
     """Return available YOLO model variants."""
@@ -41,6 +46,7 @@ def create_training_job(
     db: Session = Depends(get_db),
     request_id: str = Depends(get_request_id),
 ) -> APIResponse:
+    _ensure_training_enabled()
     job = TrainingJob(
         model_variant=body.model_variant,
         epochs=body.epochs,
@@ -319,6 +325,7 @@ def retrain_job(
     db: Session = Depends(get_db),
 ):
     """Re-run training with the same detection_ids and settings."""
+    _ensure_training_enabled()
     job = db.query(TrainingJob).filter(TrainingJob.id == job_id).first()
     if not job:
         raise HTTPException(404, "Training job not found")

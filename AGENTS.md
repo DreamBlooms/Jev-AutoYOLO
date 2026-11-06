@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to coding agents (Claude Code, Codex, OpenCode, etc.) when working with code in this repository.
 
 ## 工作流规则
 
@@ -19,6 +19,19 @@ cd frontend && pnpm dev       # Vite dev server → localhost:5173
 ```
 
 **重要**：后端启动前确保 `backend/.env` 中 `DATABASE_URL` 指向正确的 PostgreSQL。若未设置会降级到 SQLite 空库，导致看不到已有数据。
+
+### 生产部署
+
+```bash
+./deploy.sh setup              # 安装依赖、迁移数据库、构建前端
+./deploy.sh start              # 启动，后端同时提供 UI 和 API
+./deploy.sh status             # 查看健康状态
+./deploy.sh restart            # 重启
+./deploy.sh stop               # 停止
+./deploy.sh logs               # 跟踪 deploy.log
+```
+
+默认访问 `http://<host>:8000`，API 文档为 `http://<host>:8000/docs`。仓库保留可选的 `docker-compose.yml`，但不是默认部署路径。
 
 ### 前端 (`frontend/`)
 
@@ -43,11 +56,16 @@ PYTHONPATH=. pytest tests/ -v              # 运行全部测试
 PYTHONPATH=. pytest tests/path.py -v       # 运行单个测试文件
 PYTHONPATH=. pytest tests/ -k "test_name"  # 运行匹配名称的测试
 
+# 注意：test_images/ 已被 gitignore 且不再纳入版本控制；
+# 本地没有该目录时，test_api_integration / test_regression 会自动跳过。
+
 PYTHONPATH=. alembic upgrade head          # 运行数据库迁移
 PYTHONPATH=. alembic stamp <revision>      # 标记迁移版本（跳过冲突迁移）
 ```
 
 ### 提交前检查
+
+GitHub Actions 工作流已移除，CI 检查需要在本地执行：
 
 | 改动范围 | 必须执行 |
 |---------|---------|
@@ -70,9 +88,9 @@ cd backend && PYTHONPATH=. pytest tests/ -v # 全部测试通过
 ### 数据流
 
 ```
-上传图片 → 策略模式路由（VLM / VLM+SAM2 / SAM3）
-         → VLM: LocateAnything-3B → bbox
-         → VLM+SAM2: VLM bbox → SAM2 分割 → mask polygon
+上传图片 → 策略模式路由（Jev / Jev+SAM2 / SAM3）
+         → Jev: TypeSafe System One API（失败时回退本地 LocateAnything-3B）→ bbox
+         → Jev+SAM2: Jev bbox → SAM2 分割 → mask polygon
          → SAM3: facebook/sam3 独立服务 → bbox + mask polygon（一次调用）
          → DetectionBox 存入 PostgreSQL
          → 前端 Canvas 渲染（bbox + mask 可独立开关）
@@ -85,9 +103,16 @@ cd backend && PYTHONPATH=. pytest tests/ -v # 全部测试通过
 
 | 策略 | 类 | 模型 | 输出 |
 |------|------|------|------|
-| VLM | `VLMDetection` | LocateAnything-3B | bbox |
-| VLM+SAM2 | `VLMWithSAM2` | VLM + SAM 2.1 | bbox + mask polygon |
+| Jev | `JevDetection` | Jev（`jev_service.py`），本地回退 LocateAnything-3B | bbox |
+| Jev+SAM2 | `JevWithSAM2` | Jev + SAM 2.1 | bbox + mask polygon |
 | SAM3 | `SAM3Detection` | facebook/sam3 | bbox + mask polygon |
+
+`vlm_provider.detect_with_provider()` 负责 provider 选择：优先 Jev；无 API Key、网络错误或 5xx 时按 `JEV_FALLBACK_TO_LOCAL` 回退到本地模型。400 请求错误不回退。`VLMDetection` / `VLMWithSAM2` 仅作为旧类名别名保留。
+
+Jev 支持两种接入：
+- `JEV_PROVIDER=typesafe`：TypeSafe SDK，`POST /v1/systemone`，使用 `TYPESAFE_API_KEY`。
+- `JEV_PROVIDER=openrouter`：OpenRouter Decisions API，`POST /api/alpha/decisions`，使用 `OPENROUTER_API_KEY`，模型由 `OPENROUTER_JEV_MODEL` 设置（默认 `~typesafe/jev-latest`），图片以 base64 `assets` 发送。
+- `JEV_MODEL` 是两个渠道的通用回退；`TYPESAFE_JEV_MODEL` / `OPENROUTER_JEV_MODEL` 可按渠道覆盖。
 
 策略参数通过路由的 `strategy_kwargs` 传入 `detect(**kwargs)`，不通过 `create_strategy()`。
 
@@ -105,27 +130,32 @@ backend/app/services/sam3_client.py ← HTTP 客户端，自动启停 SAM3 服�
 - 模型已缓存在 `~/.cache/huggingface/hub/`，后续启动不需下载
 - Server 启动时先开 HTTP 再异步加载模型，`/health` 返回 `starting` → `loading` → `loaded`
 - 闲置 `model_idle_timeout_seconds`（默认 600s）后自动卸载
-- 检测时后端自动互斥卸载：用 SAM3 时卸 VLM+SAM2，反之亦然
+- 检测时后端自动互斥卸载：用 SAM3 时释放本地回退/SAM2；Jev 为远程 API，不占显存
 
 ### 模型状态 SSE
 
-`GET /api/v1/model/events` — 单个 SSE 端点推送 VLM、SAM2、SAM3 三个模型状态：
+`GET /api/v1/model/events` — 单个 SSE 端点推送 Jev、本地回退、SAM2、SAM3 状态：
 
 ```
-data: {"vlm": {"state":"unloaded",...}, "sam2": {"state":"unloaded",...}, "sam3": {"loaded":false,"status":"unloaded"}}
+data: {"jev": {"state":"loaded","mode":"remote",...}, "vlm": {"state":"unloaded",...}, "sam2": {...}, "sam3": {...}}
 ```
 
 前端 `useModelEvents()` hook 订阅该 SSE，`ModelStatus` 和 `Sam3Status` 组件不再各自轮询。
 
 ### 检测记录模型标注
 
-`Detection` 模型有 `model_type` 字段（`vlm` / `vlm+sam2` / `sam3`），历史列表和训练候选列表通过彩色标签展示。
+`Detection` 模型有 `model_type` 字段（`jev` / `jev+sam2` / `jev+sam3` / `sam3`；旧记录 `vlm` / `vlm+sam2`），历史列表和训练候选列表通过彩色标签展示。`model_name` 记录实际 provider。
 
 列表接口 `GET /detections` 返回轻量 `DetectionListItem`（box 不含 `mask_polygon`），减少传输体积。详情接口 `GET /detections/{id}` 返回完整 `DetectionOut`（含 mask）。训练 hover 预览通过 `HoverPreview` 组件按需请求单张详情。
 
 ### 关键概念
 
-- **VLM**：`locate_anything.py` — LocateAnything-3B 模型，惰性加载，支持 CUDA/MPS，CPU 禁止
+- **Jev**：`jev_service.py` — TypeSafe System One API，图片预处理、Box/Noul/Choice 问题构造、归一化坐标解析、多实例分块；无需本地 GPU
+- **CPU 推理**：`gpu_memory.py` 无 GPU 时返回 `cpu`；本地 LocateAnything、SAM2、SAM3 和 YOLO 验证均可在 CPU 上运行（速度较慢）。运行时通过 `POST /api/v1/config/device` 切换 CPU/GPU，切换会卸载本地模型
+- **ROCm**：AMD GPU 通过 PyTorch HIP 暴露为 `cuda`；`is_rocm()` 检测 `torch.version.hip`，配置返回 `rocm=true` / `gpuName`，UI 显示 GPU (ROCm)。ROCm 不支持 `expandable_segments`，因此只在非 ROCm 环境设置 `PYTORCH_CUDA_ALLOC_CONF`
+- **VLM 模式**：前端第三个模型 Tab 强制使用本地 LocateAnything（`use_vlm=true`），不走 Jev；支持与 SAM2 组合
+- **仅标注模式**：`ANNOTATION_ONLY=true` 时只关闭训练路由/训练界面；验证、SAM、标注、历史和多格式导出保留。运行时配置由 `GET /api/v1/config` 提供
+- **本地回退**：`locate_anything.py` — LocateAnything-3B 模型，惰性加载，支持 CUDA/MPS，CPU 禁止
 - **SAM2**：`sam2_service.py` — SAM 2.1 模型，bbox → mask polygon，惰性加载，闲置卸载
 - **SAM3**：`sam3_client.py` + `sam3_server.py` — facebook/sam3 文本驱动开放词汇分割，独立进程+独立 venv
 - **GPU 内存**：`gpu_memory.py` — 策略模式，CUDA (`expandable_segments`) / MPS (`synchronize`+`empty_cache`)

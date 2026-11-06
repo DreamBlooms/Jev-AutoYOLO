@@ -3,12 +3,12 @@ import { test, expect } from "@playwright/test";
 test.describe("Home page", () => {
   test("renders sidebar with model selector", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator("text=VLM-AutoYOLO")).toBeVisible();
-    await expect(page.getByText("VLM + SAM2")).toBeVisible();
+    await expect(page.locator("text=Jev-AutoYOLO")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Jev" })).toBeVisible();
     await expect(page.getByText("SAM3")).toBeVisible();
   });
 
-  test("switches between VLM+SAM2 and SAM3 modes", async ({ page }) => {
+  test("switches between Jev and SAM3 modes", async ({ page }) => {
     await page.goto("/");
     // Default: SAM2 checkbox visible
     await expect(page.locator("text=Enable SAM2")).toBeVisible({ timeout: 10000 });
@@ -16,7 +16,7 @@ test.describe("Home page", () => {
     await page.getByText("SAM3").click();
     await expect(page.locator("text=Enable SAM3")).toBeVisible({ timeout: 10000 });
     // Switch back
-    await page.getByText("VLM + SAM2").click();
+    await page.getByRole("button", { name: "Jev" }).click();
     await expect(page.locator("text=Enable SAM2")).toBeVisible({ timeout: 10000 });
   });
 
@@ -36,7 +36,7 @@ test.describe("Home page", () => {
 
   test("model status labels visible", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByText("VLM Model")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/Ready|Jev Unavailable/)).toBeVisible({ timeout: 10000 });
   });
 
   test("upload image and run detection", async ({ page }) => {

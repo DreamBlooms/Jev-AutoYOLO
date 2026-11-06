@@ -19,8 +19,11 @@ export function ModelSelector({
 }: Props) {
   const { t, i18n } = useTranslation();
   const { data: jobs } = useQuery({
-    queryKey: ["training-jobs"],
-    queryFn: () => fetchTrainingJobs(),
+    // Keep a separate key from the training panel's infinite query. Sharing
+    // ["training-jobs"] makes this query read the infinite-query cache shape.
+    queryKey: ["training-jobs", "model-selector"],
+    queryFn: () => fetchTrainingJobs(1, 1000),
+    staleTime: 5_000,
   });
 
   const completedJobs = (jobs?.items ?? []).filter((j: TrainingJob) => j.status === "completed");

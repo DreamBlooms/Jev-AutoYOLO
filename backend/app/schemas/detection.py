@@ -10,6 +10,10 @@ from .common import BaseSchema, _coerce_uuid
 
 
 class DetectionParams(BaseSchema):
+    use_vlm: bool = False
+    extra_state: dict | list | str | None = None
+    extra_instructions: str = ""
+    category_instructions: dict[str, str] | None = None
     use_sam2: bool = False
     use_sam3: bool = False
     sam2_score_threshold: float = 0.0

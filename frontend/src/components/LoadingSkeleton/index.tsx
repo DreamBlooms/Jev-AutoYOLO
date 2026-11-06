@@ -1,8 +1,10 @@
 export function DetectionSkeleton() {
   const { t } = useTranslation();
-  const { vlm, sam2, sam3 } = useModelEvents();
+  const { jev, vlm, sam2, sam3 } = useModelEvents();
 
   const modelLoading =
+    jev.state === "loading" ||
+    jev.state === "downloading" ||
     vlm.state === "loading" ||
     vlm.state === "downloading" ||
     sam2.state === "loading" ||

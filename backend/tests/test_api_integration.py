@@ -14,6 +14,8 @@ import time
 import pytest
 import requests
 
+from app.core.config import hf_repo_cache_dir
+
 BASE = "http://127.0.0.1:8000/api/v1"
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CAT_DIR = os.path.join(_PROJECT_ROOT, "test_images", "cat")
@@ -66,7 +68,14 @@ def _validate_detection_response(data):
     assert isinstance(data["id"], str) and len(data["id"]) > 0
     assert isinstance(data["imageName"], str)
     assert isinstance(data["categories"], list) and len(data["categories"]) > 0
-    assert isinstance(data["modelType"], str) and data["modelType"] in ("vlm", "vlm+sam2", "sam3")
+    assert isinstance(data["modelType"], str) and data["modelType"] in (
+        "jev",
+        "jev+sam2",
+        "jev+sam3",
+        "vlm",
+        "vlm+sam2",
+        "sam3",
+    )
     assert data["imageWidth"] > 0
     assert data["imageHeight"] > 0
     assert isinstance(data["elapsedMs"], (int, type(None)))
@@ -95,7 +104,7 @@ def _post_detect(use_sam3=False):
 @pytest.mark.skipif(not (TEST_IMAGE and os.path.exists(TEST_IMAGE)), reason="no test images")
 class TestDetectionFlow:
     def test_detect_vlm(self):
-        """VLM detection returns valid response."""
+        """Primary detection (Jev or local fallback) returns a valid response."""
         with open(TEST_IMAGE, "rb") as f:
             resp = requests.post(
                 f"{BASE}/detect",
@@ -109,10 +118,7 @@ class TestDetectionFlow:
         assert len(data["boxes"]) > 0
 
     @pytest.mark.skipif(
-        not os.environ.get("HF_TOKEN")
-        and not os.path.isdir(
-            os.path.expanduser("~/.cache/huggingface/hub/models--facebook--sam3")
-        ),
+        not os.environ.get("HF_TOKEN") and not hf_repo_cache_dir("facebook/sam3").is_dir(),
         reason="SAM3 requires HF_TOKEN or cached model",
     )
     def test_detect_sam3(self):

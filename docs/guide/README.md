@@ -1,18 +1,18 @@
-# VLM-AutoYOLO 用户指南
+# Jev-AutoYOLO 用户指南
 
-欢迎使用 VLM-AutoYOLO！本指南将帮助你快速上手并充分利用这个端到端的目标检测自动标注与训练平台。
+欢迎使用 Jev-AutoYOLO！本指南将帮助你快速上手并充分利用这个端到端的目标检测自动标注与训练平台。
 
 ## 指南目录
 
 - [快速开始](./getting-started.md) - 从安装到第一个检测结果的完整流程
-- [标注最佳实践](./annotation-tips.md) - VLM 预标注和人工修正的技巧与经验
+- [标注最佳实践](./annotation-tips.md) - Jev 预标注和人工修正的技巧与经验
 - [训练参数调优](./training-guide.md) - YOLO 训练参数选择与数据集准备指南
 
 ## 系统要求
 
 | 资源 | 最低配置 |
 |------|---------|
-| **NVIDIA GPU** | 12GB 显存 (用于加速 VLM 和 YOLO 训练) |
+| **GPU** | 可选；NVIDIA CUDA / AMD ROCm 可加速本地模型和训练，Jev 无需本地 GPU |
 | **macOS (Apple Silicon)** | 24GB 统一内存 (MPS) |
 | **内存 (CPU 模式)** | 16GB 系统内存 (推荐 32GB) |
 | **存储** | 50GB 可用空间 |
@@ -26,11 +26,11 @@
 ## 核心工作流
 
 ```
-上传图片/视频 → VLM / SAM3 自动标注 → 人工修正 → 导出数据集 → 训练 YOLO → 验证模型
+上传图片/视频 → Jev / 本地 VLM / SAM3 自动标注 → 人工修正 → 导出数据集 → 训练 YOLO → 验证模型
 ```
 
-1. **选择模型**：VLM+SAM2（检测+分割）或 SAM3（文本驱动端到端）
-2. **自动标注**：VLM 或 SAM3 自动生成边界框和 mask
+1. **选择模型**：Jev、本地 VLM（LocateAnything-3B）或 SAM3；SAM2 可单独开启
+2. **自动标注**：Jev / 本地 VLM / SAM3 自动生成边界框和 mask
 3. **人工修正**：在 Canvas 画布上调整、删除、添加标注框
 4. **数据导出**：导出 YOLO 格式标注文件（支持单图和批量）
 5. **模型训练**：一键训练 YOLOv5/v8/v11/v26，实时查看训练进度
@@ -45,4 +45,4 @@
 ## 获取帮助
 
 - 查看 [API 文档](http://localhost:8000/docs) 了解后端接口详情
-- 遇到问题？请在 [GitHub Issues](https://github.com/Somnusochi/VLM-AutoYOLO/issues) 提交反馈
+- 遇到问题？请在 项目仓库的 Issues 提交反馈

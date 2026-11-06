@@ -1,18 +1,18 @@
 # User Guide
 
-Welcome to VLM-AutoYOLO! This guide will help you get started and make the most of this end-to-end object detection auto-labeling and training platform.
+Welcome to Jev-AutoYOLO! This guide will help you get started and make the most of this end-to-end object detection auto-labeling and training platform.
 
 ## Guide Contents
 
 - [Getting Started](./getting-started.md) - Complete workflow from installation to your first detection
-- [Annotation Best Practices](./annotation-tips.md) - Tips and tricks for VLM pre-labeling and manual refinement
+- [Annotation Best Practices](./annotation-tips.md) - Tips and tricks for Jev pre-labeling and manual refinement
 - [Training Parameter Tuning](./training-guide.md) - YOLO training parameter selection and dataset preparation guide
 
 ## System Requirements
 
 | Resource | Minimum Configuration |
 |----------|----------------------|
-| **NVIDIA GPU** | 12GB VRAM (for VLM and YOLO training acceleration) |
+| **GPU** | Optional; NVIDIA CUDA / AMD ROCm accelerates local models and training. Jev needs no local GPU. |
 | **macOS (Apple Silicon)** | 24GB Unified Memory (MPS) |
 | **Memory (CPU Mode)** | 16GB System RAM (32GB recommended) |
 | **Storage** | 50GB available space |
@@ -26,11 +26,11 @@ Welcome to VLM-AutoYOLO! This guide will help you get started and make the most 
 ## Core Workflow
 
 ```
-Upload Images/Video → VLM / SAM3 Auto-Labeling → Manual Refinement → Export Dataset → Train YOLO → Validate Model
+Upload Images/Video → Jev / local VLM / SAM3 Auto-Labeling → Manual Refinement → Export Dataset → Train YOLO → Validate Model
 ```
 
-1. **Choose Model**: VLM+SAM2 (detection + segmentation) or SAM3 (text-driven end-to-end)
-2. **Auto-Labeling**: VLM or SAM3 generates bounding boxes and masks automatically
+1. **Choose Model**: Jev, local VLM (LocateAnything-3B), or SAM3; enable SAM2 separately.
+2. **Auto-Labeling**: Jev / local VLM / SAM3 generates bounding boxes and masks automatically.
 3. **Data Export**: Export YOLO format annotation files (single image and batch supported)
 4. **Model Training**: One-click training for YOLOv5/v8/v11/v26 with real-time progress monitoring
 5. **Model Validation**: Validate training results on test images/videos
@@ -44,4 +44,4 @@ Upload Images/Video → VLM / SAM3 Auto-Labeling → Manual Refinement → Expor
 ## Getting Help
 
 - Check the [API Documentation](http://localhost:8000/docs) for detailed backend interface information
-- Having issues? Please submit feedback on [GitHub Issues](https://github.com/Somnusochi/VLM-AutoYOLO/issues)
+- Having issues? Please submit feedback on the project repository Issues

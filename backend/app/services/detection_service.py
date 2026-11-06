@@ -34,12 +34,19 @@ async def process_detection(
             stop_sam3_server()
 
     # 2. Setup strategy
-    strategy = create_strategy(use_sam2=params.use_sam2, use_sam3=params.use_sam3)
+    strategy = create_strategy(
+        use_sam2=params.use_sam2,
+        use_sam3=params.use_sam3,
+        use_vlm=params.use_vlm,
+    )
     strategy_kwargs = {
         "sam2_score_threshold": params.sam2_score_threshold,
         "use_sam3_seg": params.use_sam3_seg,
         "sam3_threshold": params.sam3_threshold,
         "sam3_mask_threshold": params.sam3_mask_threshold,
+        "extra_state": params.extra_state,
+        "extra_instructions": params.extra_instructions,
+        "category_instructions": params.category_instructions,
     }
 
     t0 = time.perf_counter()
@@ -57,7 +64,11 @@ async def process_detection(
     if params.use_sam3:
         model_type = ModelType.sam3
     elif params.use_sam2:
-        model_type = ModelType.vlm_sam2
+        model_type = ModelType.jev_sam2 if result.provider.startswith("jev") else ModelType.vlm_sam2
+    elif result.used_sam3:
+        model_type = ModelType.jev_sam3
+    elif result.provider == "jev":
+        model_type = ModelType.jev
     else:
         model_type = ModelType.vlm
 
@@ -67,6 +78,7 @@ async def process_detection(
         image_width=result.img_w,
         image_height=result.img_h,
         categories=categories,
+        model_name=result.model_name or "Jev",
     )
     detection.model_type = model_type
     detection.elapsed_ms = int((time.perf_counter() - t0) * 1000)

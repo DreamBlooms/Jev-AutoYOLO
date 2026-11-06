@@ -16,6 +16,20 @@ import torch
 logger = logging.getLogger(__name__)
 
 
+def is_rocm() -> bool:
+    """True when PyTorch is a ROCm/HIP build (AMD GPU)."""
+    return bool(getattr(torch.version, "hip", None))
+
+
+def gpu_name() -> str:
+    if not torch.cuda.is_available():
+        return ""
+    try:
+        return torch.cuda.get_device_name(0)
+    except Exception:
+        return ""
+
+
 # ── Abstract strategy ─────────────────────────────────
 
 
@@ -139,19 +153,13 @@ def _detect_device(override: str = "") -> str:
         return "cuda"
     if torch.backends.mps.is_available():
         return "mps"
-    raise RuntimeError(
-        "No GPU detected. LocateAnything-3B requires CUDA (NVIDIA GPU) "
-        "or MPS (Apple Silicon). CPU inference is not supported."
-    )
+    return "cpu"
 
 
 def validate_vlm_device(device: str) -> None:
-    """Fail fast only for unsupported devices, without imposing a VRAM cutoff."""
-    if device == "cpu":
-        raise RuntimeError(
-            "LocateAnything-3B cannot run on CPU in this application. "
-            "Expose a CUDA GPU to the container or use Apple Silicon MPS in manual setup."
-        )
+    """Validate the device string. CPU is supported for the local fallback."""
+    if device not in ("cuda", "mps", "cpu"):
+        raise RuntimeError(f"Unsupported device: {device}")
 
 
 def create_memory_manager(device: str) -> GPUMemoryManager:

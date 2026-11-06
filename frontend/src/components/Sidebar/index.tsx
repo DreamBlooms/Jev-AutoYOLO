@@ -3,8 +3,11 @@ import { ImageUploader } from "@/components/ImageUploader";
 import { HistoryList } from "@/components/HistoryList";
 import { BatchProgress } from "@/components/BatchProgress";
 import { ModelStatus } from "@/components/ModelStatus";
+import { DeviceSelector } from "@/components/DeviceSelector";
+import { JevAdvancedSettings } from "@/components/JevAdvancedSettings";
 import { Sam3Status } from "@/components/Sam3Status";
 import { TrainingPanel } from "@/components/TrainingPanel";
+import { AnnotationExportPanel } from "@/components/AnnotationExportPanel";
 import { VideoPanel } from "@/components/VideoPanel";
 import { ValidationSettings } from "@/components/ValidationSettings";
 import { FilterPanel } from "@/components/FilterPanel";
@@ -49,6 +52,8 @@ export function Sidebar({
 }: SidebarProps) {
   const { t } = useTranslation();
   const {
+    annotationOnly,
+    useVlm, setUseVlm,
     appMode, setAppMode,
     validateModelSource, setValidateModelSource,
     selectedTrainedJobId, setSelectedTrainedJobId,
@@ -56,7 +61,6 @@ export function Sidebar({
     files, setFiles,
     setPreviewUrl,
     setBatchResults: setBatch,
-    setUseSam2,
     useSam3, setUseSam3,
     validateVideoId, setValidateVideoId,
     setValidateRunKey,
@@ -77,26 +81,36 @@ export function Sidebar({
 
       {/* Model selector */}
       <div className="flex rounded-lg border border-gray-200/60 bg-gray-100/80 p-1 relative min-h-[36px] mb-2 shadow-inner">
-        {(["vlm+sam2", "sam3"] as const).map((mode) => {
-          const active = mode === "sam3" ? useSam3 : !useSam3;
+        {(["jev", "vlm", "sam3"] as const).map((mode) => {
+          const active =
+            mode === "sam3" ? useSam3 : mode === "vlm" ? useVlm && !useSam3 : !useSam3 && !useVlm;
           return (
             <button
               key={mode}
               type="button"
-              onClick={() => { setUseSam2(mode === "vlm+sam2"); setUseSam3(mode === "sam3"); }}
+              onClick={() => {
+                if (mode === "sam3") {
+                  setUseSam3(true);
+                  setUseVlm(false);
+                } else {
+                  setUseSam3(false);
+                  setUseVlm(mode === "vlm");
+                }
+              }}
               className={`flex-1 text-xs font-semibold px-3 py-1 rounded-md transition-all duration-300 cursor-pointer relative z-10 ${
                 active
                   ? "bg-white text-primary-600 shadow-sm ring-1 ring-black/5"
                   : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
               }`}
             >
-              {mode === "sam3" ? "SAM3" : "VLM + SAM2"}
+              {mode === "sam3" ? "SAM3" : mode === "vlm" ? "VLM" : "Jev"}
             </button>
           );
         })}
       </div>
 
-      {useSam3 ? <Sam3Status /> : <ModelStatus />}
+      {useSam3 ? <Sam3Status /> : <ModelStatus mode={useVlm ? "vlm" : "jev"} />}
+      <DeviceSelector />
 
       {/* Mode tabs */}
       <div className="flex border-b border-gray-200 mb-2">
@@ -167,13 +181,16 @@ export function Sidebar({
       </div>
 
       {!(appMode === "validate" && inputMode === "video" && validateVideoId) && (
-        <DetectionControls
-          recentCategories={recentCategories}
-          loading={loading}
-          filesCount={files.length}
-          batchProgress={batchProgress}
-          onDetect={handleDetect}
-        />
+        <>
+          <DetectionControls
+            recentCategories={recentCategories}
+            loading={loading}
+            filesCount={files.length}
+            batchProgress={batchProgress}
+            onDetect={handleDetect}
+          />
+          {!useSam3 && !useVlm && <JevAdvancedSettings />}
+        </>
       )}
 
       {appMode === "validate" && inputMode === "video" && (
@@ -219,16 +236,20 @@ export function Sidebar({
 
       <hr className="border-gray-100" />
 
-      <div>
-        <p className="text-sm font-medium text-gray-600 mb-2">{t("common.yoloTrain")}</p>
-        <TrainingPanel
-          detections={allItems}
-          total={total}
-          hasNextPage={historyQuery.hasNextPage}
-          isFetchingNextPage={historyQuery.isFetchingNextPage}
-          fetchNextPage={historyQuery.fetchNextPage}
-        />
-      </div>
+      {annotationOnly ? (
+        <AnnotationExportPanel total={total} />
+      ) : (
+        <div>
+          <p className="text-sm font-medium text-gray-600 mb-2">{t("common.yoloTrain")}</p>
+          <TrainingPanel
+            detections={allItems}
+            total={total}
+            hasNextPage={historyQuery.hasNextPage}
+            isFetchingNextPage={historyQuery.isFetchingNextPage}
+            fetchNextPage={historyQuery.fetchNextPage}
+          />
+        </div>
+      )}
     </aside>
   );
 }

@@ -29,6 +29,15 @@ def _backend_reachable():
         return False
 
 
+def _using_jev():
+    """Snapshots were recorded with the local VLM; Jev output is not deterministic."""
+    try:
+        data = requests.get(f"{BASE}/config", timeout=2).json()
+        return bool(data.get("jevConfigured"))
+    except Exception:
+        return False
+
+
 backend_required = pytest.mark.skipif(not _backend_reachable(), reason="Backend not running")
 
 # Tolerance: box coordinates ±5px, confidence ±0.1
@@ -89,6 +98,8 @@ class TestRegressionSnapshots:
     @pytest.mark.parametrize("img_path", IMAGES)
     def test_detection_matches_snapshot(self, img_path):
         """Detection result matches baseline within tolerance."""
+        if _using_jev():
+            pytest.skip("Snapshots target the local VLM; Jev is configured")
         name = os.path.basename(img_path)
         snapshot_path = os.path.join(SNAPSHOT_DIR, f"{os.path.splitext(name)[0]}.json")
         if not os.path.exists(snapshot_path):
@@ -141,6 +152,8 @@ class TestRegressionSnapshots:
 
     def test_model_type_consistent(self):
         """Model type should not change between runs."""
+        if _using_jev():
+            pytest.skip("Snapshots target the local VLM; Jev is configured")
         for img_path in IMAGES[:1]:
             name = os.path.basename(img_path)
             snapshot_path = os.path.join(SNAPSHOT_DIR, f"{os.path.splitext(name)[0]}.json")

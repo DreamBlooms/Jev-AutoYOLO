@@ -11,6 +11,9 @@ from ..core.database import Base
 
 
 class ModelType(enum.StrEnum):
+    jev = "jev"
+    jev_sam2 = "jev+sam2"
+    jev_sam3 = "jev+sam3"
     vlm = "vlm"
     vlm_sam2 = "vlm+sam2"
     sam3 = "sam3"
@@ -38,7 +41,7 @@ class Detection(Base):
     image_path: Mapped[str] = mapped_column(Text, nullable=False)
     image_name: Mapped[str] = mapped_column(String(512), nullable=False)
     categories: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
-    model_name: Mapped[str] = mapped_column(String(256), default="LocateAnything-3B")
+    model_name: Mapped[str] = mapped_column(String(256), default="Jev")
     model_type: Mapped[ModelType | None] = mapped_column(
         Enum(ModelType, values_callable=lambda x: [e.value for e in x]), nullable=True
     )

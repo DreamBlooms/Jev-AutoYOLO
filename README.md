@@ -1,4 +1,4 @@
-# VLM-AutoYOLO
+# Jev-AutoYOLO
 
 [简体中文](README_ZH.md) | English
 
@@ -8,24 +8,37 @@
   <img src="https://img.shields.io/badge/Node.js-22+-green" alt="Node.js">
   <img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey" alt="Platform">
   <img src="https://img.shields.io/badge/GPU-MPS%20%7C%20CUDA-orange" alt="GPU">
-  <a href="mailto:somnusochi@gmail.com"><img src="https://img.shields.io/badge/Open_to_Work-🤝-brightgreen?style=flat" alt="Open to Work"></a>
-  <img src="https://img.shields.io/github/stars/Somnusochi/VLM-AutoYOLO?style=social" alt="Stars">
 </p>
 
 ```
-🖼️ image/video → 🔍 VLM / SAM3 detection → 🎯 SAM2/SAM3 mask → ✏️ refine → 📦 export → 🚀 YOLO → ✅ model
+🖼️ image/video → 🔍 Jev / SAM3 detection → 🎯 SAM2/SAM3 mask → ✏️ refine → 📦 export → 🚀 YOLO → ✅ model
 ```
 
-**Images or videos in → YOLO model out**, with VLM auto-labeling (LocateAnything-3B), SAM2.1 / SAM3 mask refinement, and human-in-the-loop correction. Multi-format export, one-click YOLO training (detect & segment), video keyframe extraction, and model validation — all GPU-accelerated on macOS MPS and Windows/Linux CUDA.
+**Images or videos in → YOLO model out**, with Jev (TypeSafe System One) auto-labeling, an optional local LocateAnything-3B fallback, SAM2.1 / SAM3 mask refinement, and human-in-the-loop correction. Multi-format export, one-click YOLO training (detect & segment), video keyframe extraction, and model validation — all GPU-accelerated on macOS MPS and Windows/Linux CUDA.
 
-If this project helps you, please ⭐ [star it on GitHub](https://github.com/Somnusochi/VLM-AutoYOLO). I'm open to new opportunities — reach out: somnusochi@gmail.com
+```mermaid
+flowchart LR
+    U[User / Browser] --> FE[React + Vite UI]
+    FE -->|REST + SSE| BE[FastAPI Backend]
+    BE --> DB[(SQLite / PostgreSQL)]
+    BE --> FS[(Images / Labels / Models / Training Runs)]
+    BE --> JEV[Jev / TypeSafe System One]
+    BE --> VLM[Local VLM fallback / LocateAnything-3B]
+    BE --> SAM2[SAM2 segmentation]
+    BE --> SAM3[SAM3 detection + segmentation]
+    JEV --> DEC[Box / Noul / Choice answers]
+    DEC --> BE
+    BE --> EXP[Export / YOLO / YOLO-Seg / COCO / VOC / CreateML]
+    BE --> YOLO[YOLO training + validation]
+    MS[ModelScope / HuggingFace] -.->|web download + init| VLM
+    MS -.-> SAM2
+    MS -.-> SAM3
+```
 
-![Architecture](docs/architecture_en.webp)
-
-> See [Architecture & Workflow Documentation](docs/architecture_diagram_en.md) for detailed Mermaid diagrams.
+> See [Architecture & Workflow Documentation](docs/architecture_diagram_en.md) for detailed diagrams.
 
 ## Key Features
-- 🤖 **VLM auto-labeling**: Open-vocabulary object detection with LocateAnything-3B
+- 🤖 **Jev auto-labeling**: Open-vocabulary grounding through the hosted TypeSafe System One API, with an optional local LocateAnything-3B fallback
 - 🎯 **SAM2 / SAM3 segmentation**: Bbox → pixel-precise mask with SAM 2.1 or SAM3 text-driven detection+segmentation in one pass, BBox/Mask toggle on canvas
 - 🎥 **Video annotation**: Intelligent keyframe extraction (scene / motion / interval), SSIM dedup
 - ✏️ **Manual refinement**: Canvas draw mode, NMS filtering, hide/show individual boxes
@@ -41,100 +54,32 @@ If this project helps you, please ⭐ [star it on GitHub](https://github.com/Som
 
 Comprehensive guides: quick start, annotation best practices, training parameter tuning, model deployment.
 
-## Screenshots
+### Production Deployment (no Docker)
 
-| VLM Pre-annotation & Refinement | YOLO Training |
-|--------------------------------|---------------|
-| ![VLM pre-annotation and refinement](docs/1.webp) | ![YOLO training](docs/2.webp) |
-
-| Video Keyframe Entry | Model Validation |
-|---------------------|-----------------|
-| ![Video keyframe entry](docs/4.webp) | ![Model validation](docs/3.webp) |
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Visual Grounding | NVIDIA LocateAnything-3B (Qwen2.5-3B + MoonViT) |
-| Segmentation | SAM 2.1 / SAM3 — Segment Anything Model 2 / 3 |
-| Object Detection | YOLOv8 / v11 / v26 — Detect & Segment (Ultralytics) |
-| Backend | Python FastAPI + PostgreSQL + SSE |
-| Frontend | React + TypeScript + Vite + Tailwind CSS + antd |
-| GPU Memory | Strategy Pattern (`gpu_memory.py`) — CUDA expandable segments / MPS synchronize + empty_cache |
-| State | Zustand + TanStack Query + ahooks |
-| i18n | i18next (English / 简体中文 / 日本語) |
-| Video | ffmpeg (scene / motion / interval extraction) |
-| Tooling | pnpm, ESLint, Prettier, Husky, commitlint, Playwright |
-
-## Quick Start
-
-### CLI (Recommended for macOS / Linux / Windows)
+Use the bundled deployment helper to install dependencies, build the frontend, initialize the database, and serve the UI and API from one port.
 
 ```bash
-git clone https://github.com/Somnusochi/VLM-AutoYOLO.git
-cd VLM-AutoYOLO
-python3 cli.py all
+# One-time setup (dependencies, migrations, frontend build)
+./deploy.sh setup
+
+# Start / stop / restart / status / logs
+./deploy.sh start
+./deploy.sh status
+./deploy.sh restart
+./deploy.sh stop
+./deploy.sh logs
 ```
 
-The CLI handles everything: dependency checks, Python venv, pip install, pnpm install, database migrations, and launches both services. Open http://localhost:5173.
+Access the UI at `http://<host>:8000` and API docs at `http://<host>:8000/docs`.
 
-On Windows, the CLI recognizes the `pnpm.cmd` and `npm.cmd` shims installed by Node.js and invokes them through the command interpreter, so `python cli.py all` works from PowerShell or CMD.
+Runtime files:
 
-**Commands:**
-```bash
-python3 cli.py all                       # Setup + download models + start
-python3 cli.py all --no-models           # Skip model download
-python3 cli.py all --models=vlm          # Only download VLM model
-python3 cli.py all --models=vlm,sam2     # Download VLM + SAM2
-python3 cli.py setup                     # Install deps + init DB
-python3 cli.py start                     # Launch services
-python3 cli.py stop                      # Stop services
-python3 cli.py status                    # Check if running
-python3 cli.py download --models=vlm     # Re-download specific model
-```
+- `deploy.log` — backend log
+- `.deploy.pid` — running backend PID
+- `backend/autolabeling.db` — default SQLite database
+- `backend/modelscope_models/` — web-downloaded model cache
 
-### Docker Deployment
-
-> **Requirements:** Linux or Windows (WSL2) with NVIDIA GPU + [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
-> **macOS is not supported** — Docker on Mac has no GPU passthrough. Use [Manual Setup](#manual-setup) instead.
-
-**Quick start with pre-built images:**
-
-```bash
-curl -O https://raw.githubusercontent.com/Somnusochi/VLM-AutoYOLO/master/docker-compose.yml
-docker compose up -d
-open http://localhost        # Frontend
-open http://localhost:8000/docs  # API docs
-```
-
-**Build from source:**
-
-```bash
-git clone https://github.com/Somnusochi/VLM-AutoYOLO.git
-cd VLM-AutoYOLO
-docker compose up -d --build
-```
-
-**Services:**
-
-| Service | Port | Description |
-|---------|------|-------------|
-| Frontend | 80 | React web UI (Nginx) |
-| Backend | 8000 | FastAPI server |
-| SAM3 | 8002 | SAM3 standalone inference service |
-| Database | 5432 | PostgreSQL |
-
-**GPU Support** — `docker-compose.yml` now has built-in GPU passthrough configured. No manual editing required.
-
-**Persistent Storage (Docker volumes):**
-- `pgdata` — Database · `model-cache` — VLM model · `sam3-cache` — Hugging Face cache for SAM2/SAM3 · `uploads` — User images/videos · `training-data` — YOLO training outputs
-
-**Backup / Restore:**
-
-```bash
-docker compose exec db pg_dump -U postgres autolabeling > backup.sql
-cat backup.sql | docker compose exec -T db psql -U postgres autolabeling
-```
+For development mode with Vite hot reload, use `./start.sh` or `python3 cli.py start`. An optional `docker-compose.yml` is kept for users who prefer containers; it is not the default deployment path.
 
 ### Manual Setup
 
@@ -147,13 +92,14 @@ cat backup.sql | docker compose exec -T db psql -U postgres autolabeling
 | PostgreSQL | 16+ | 16+ |
 | ffmpeg | Any | — |
 | macOS | Apple Silicon 16GB | 24GB+ |
-| NVIDIA GPU | 12GB VRAM | 16GB+ |
+| NVIDIA GPU | Optional; 12GB VRAM for accelerated SAM2/SAM3/local VLM | 16GB+ |
+| AMD ROCm GPU | Optional; ROCm 6.x/7.x + ROCm PyTorch build | — |
 
 **Setup:**
 
 ```bash
-git clone https://github.com/Somnusochi/VLM-AutoYOLO.git
-cd VLM-AutoYOLO
+git clone <your-repository-url>
+cd Jev-AutoYOLO
 
 # Backend
 cd backend
@@ -202,21 +148,78 @@ start.bat    # Windows
 
 Full directory tree: **[docs/STRUCTURE.md](docs/STRUCTURE.md)**
 
+## Jev Configuration
+
+Jev is TypeSafe's hosted System One model. It answers `Box`, `Noul`, and `Choice` questions about an image and returns normalized coordinates, so the VLM no longer needs a local GPU.
+
+```bash
+# backend/.env — direct TypeSafe API
+JEV_PROVIDER=typesafe
+TYPESAFE_API_KEY=your_key_here
+TYPESAFE_JEV_MODEL=jev-1.14.0  # optional; this is the default
+JEV_MULTI_INSTANCE=auto      # auto | single | sam3
+JEV_FALLBACK_TO_LOCAL=true
+
+# No-GPU / annotation-only deployment
+DEVICE=cpu
+ANNOTATION_ONLY=true
+
+# backend/.env — via OpenRouter
+JEV_PROVIDER=openrouter
+OPENROUTER_API_KEY=your_openrouter_key
+OPENROUTER_JEV_MODEL=~typesafe/jev-latest
+```
+
+`JEV_MODEL` is a shared fallback; `TYPESAFE_JEV_MODEL` and `OPENROUTER_JEV_MODEL` override the model name per provider, so you can switch channels without editing the other provider's model.
+
+Get a TypeSafe key from https://console.typesafe.ai/ or use an OpenRouter key from https://openrouter.ai/. With OpenRouter, the backend calls `POST /api/alpha/decisions` because Jev is a decisions model, not a chat model. Read the API docs at https://docs.typesafe.ai/. Images and Box questions require the `TypeSafe-Danger-Zone-Images: true` header, which the backend sends automatically. Keep both API keys on the backend; they are never sent to the browser.
+
+- `auto` detects one box per category first, then tiles the image when Jev reports `several` instances.
+- `single` asks for one box per category and never tiles.
+- `sam3` hands multi-instance cases to the existing SAM3 service.
+- If Jev is unavailable and `JEV_FALLBACK_TO_LOCAL=true`, the backend uses the local LocateAnything-3B model when `backend/model/config.json` exists.
+- Jev accepts PNG/JPEG images with each side between 280 and 1568 px. The backend resizes and pads images to fit, then maps boxes back to the original pixels.
+- Optional advanced settings in the Jev tab let you append `state` (JSON, merged into the request or placed in `context`), extra global `instructions`, and per-category instructions (e.g. one instruction for `cat`, another for `dog`). Reference extra state keys in instructions with backticks, e.g. `scene`.
+- `ANNOTATION_ONLY=true` hides training in the UI and does not register training routes. Annotation, YOLO validation, Jev/local-VLM/SAM detection, manual correction, history, and multi-format export remain available.
+- The local LocateAnything-3B, SAM2, SAM3, and YOLO validation all support CPU (`DEVICE=cpu`), but are much slower than Jev. Switch CPU/GPU at runtime from the sidebar; switching unloads local models so the next run uses the new device.
+- AMD ROCm is supported. PyTorch exposes ROCm GPUs as `cuda`, so choose `GPU (ROCm)` in the device selector. Install the ROCm build explicitly, for example `pip install torch torchvision --index-url https://download.pytorch.org/whl/rocm7.2`. `cli.py setup` auto-detects `/opt/rocm` and uses the matching ROCm wheel index.
+
 ## Features
 
-### VLM Pre-annotation
+### Jev Pre-annotation
 
-Upload images or video keyframes with open-vocabulary descriptions (e.g. `fire, smoke`, `red car`). LocateAnything-3B automatically detects and draws bounding boxes.
+Upload images or video keyframes with open-vocabulary descriptions (e.g. `fire, smoke`, `red car`). Jev returns normalized Box answers that are converted to pixel bounding boxes. If `TYPESAFE_API_KEY` is missing or the API is unreachable, the backend falls back to the local LocateAnything-3B model when it is installed.
 
 - Open-vocabulary natural language descriptions
-- Auto-resize by long-side cap (VRAM-based: 800–1333px)
+- Automatic resize/pad into Jev's 280–1568px range
 - Batch upload folders or video keyframes, streaming results
+
+### Web Model Download
+
+The sidebar can pull and initialize local models from ModelScope without the CLI:
+
+- VLM: `VLM_MODELSCOPE_ID` (optional; falls back to HuggingFace when no ModelScope mirror is configured)
+- SAM2: `SAM2_MODELSCOPE_ID=facebook/sam2.1-hiera-base-plus`
+- SAM3: `SAM3_MODELSCOPE_ID=facebook/sam3`
+
+Use the **Pull & init** button on the model cards (including the VLM tab and SAM3 status card). Downloads run in the background and byte-level progress appears in the model status SSE stream. Paths are persisted under `backend/modelscope_models/` so they survive restarts.
+
+**Environment split:** LocateAnything-3B needs `transformers==4.57.1`, while SAM3 needs `transformers>=5`. Keep the main backend venv on 4.57.1 and install SAM3 in its own environment:
+
+```bash
+python -m venv backend/sam3-venv
+backend/sam3-venv/bin/pip install -r backend/requirements-sam3.txt
+```
+
+The web SAM3 init automatically uses `backend/sam3-venv` when it exists. HuggingFace cache paths honor `HF_HUB_CACHE`, then `HF_HOME/hub`, then `~/.cache/huggingface/hub`. `HF_TOKEN` must be exported in the process environment; values only in `backend/.env` are not visible to Transformers/HuggingFace. ModelScope-cached VLM/SAM2/SAM3 models are detected and reused by both the web UI and CLI.
+
+Cached models are reused: if the expected weights are already present, **Pull & init** skips the download and only loads the model. Only one model download/initialization runs at a time, and redundant ModelScope files (for example `model.safetensors` when SAM2 uses its `.pt` checkpoint) are cleaned up.
 
 ### SAM2 Segmentation
 
-Enable SAM2 (Segment Anything Model 2) to refine VLM bounding boxes into pixel-precise masks.
+Enable SAM2 (Segment Anything Model 2) to refine Jev bounding boxes into pixel-precise masks.
 
-- Check "Enable SAM2 Segmentation" before detection — runs automatically after VLM
+- Check "Enable SAM2 Segmentation" before detection — runs automatically after Jev
 - SAM 2.1 model (base+), lazy-loaded with idle auto-unload
 - Score threshold slider for mask quality filtering
 - Masks rendered as semi-transparent overlays on canvas
@@ -225,9 +228,9 @@ Enable SAM2 (Segment Anything Model 2) to refine VLM bounding boxes into pixel-p
 
 ### SAM3 Detection + Segmentation
 
-Switch to SAM3 mode for text-driven detection and segmentation in a single pass — no VLM required.
+Switch to SAM3 mode for text-driven detection and segmentation in a single pass — no Jev request required.
 
-- Toggle between VLM+SAM2 and SAM3 via the model selector in the sidebar
+- Toggle between Jev, local VLM (LocateAnything), and SAM3 via the model selector; enable SAM2 separately for mask refinement
 - Enter open-vocabulary text prompts (e.g. `cat`, `red car`) — SAM3 detects and segments all matching instances
 - **Confidence threshold** slider (0.0–1.0, default 0.5) controls detection sensitivity
 - **Mask threshold** slider (0.0–1.0, default 0.5) controls mask tightness
@@ -240,8 +243,8 @@ Switch to SAM3 mode for text-driven detection and segmentation in a single pass 
 - Auto-starts on first use, idle auto-unload after 10 min
 - Real-time loading status via SSE (`starting` → `loading` → `loaded`)
 - Manual unload button to free GPU memory
-- Backend auto-switches: using SAM3 unloads VLM/SAM2, and vice versa
-- Detection records tagged with `model_type` (VLM / VLM+SAM2 / SAM3) for traceability
+- Backend auto-switches: using SAM3 releases the local fallback/SAM2; Jev is a remote API and needs no unloading
+- Detection records tagged with `model_type` (`jev` / `jev+sam2` / `jev+sam3`; legacy `vlm` records remain readable)
 
 ### Video Annotation
 
@@ -257,7 +260,7 @@ Upload a video, extract keyframes, select and batch-annotate.
 Canvas-based annotation with View / Draw modes.
 
 - Category quick-fill from history
-- VLM pre-annotation baseline → delete mistakes → draw missing boxes
+- Jev pre-annotation baseline → delete mistakes → draw missing boxes
 - All / Best / NMS filter modes, settings saved per detection
 - Hide individual boxes while inspecting dense results
 - Per-frame re-detection
@@ -294,28 +297,29 @@ Canvas-based annotation with View / Draw modes.
 
 ### Model Management
 
-- **Lazy loading**: VLM, SAM2, and SAM3 load on first use, unload after idle (default 10 min)
+- **Lazy loading**: the local fallback, SAM2, and SAM3 load on first use and unload after idle (default 10 min). Jev is a remote API.
 - **Idle watchdog**: all three models auto-unload after `MODEL_IDLE_TIMEOUT_SECONDS` of inactivity
-- **Unified SSE status**: `GET /api/v1/model/events` streams VLM, SAM2, SAM3 status in one connection
+- **Unified SSE status**: `GET /api/v1/model/events` streams Jev, local fallback, SAM2, and SAM3 status in one connection
 - **Manual unload**: each model has its own unload button and API endpoint
 - **GPU memory**: Strategy Pattern (`gpu_memory.py`) — CUDA `expandable_segments` / MPS `synchronize`+`empty_cache`+`gc`
 - **Transparent load errors**: model load/inference failures are returned to the UI instead of being hidden behind generic detection errors
 
 ### Troubleshooting: Stuck at `Loading to GPU`
 
-If the VLM model stays at `Loading to GPU`, the model files were already found and the failure is likely happening while PyTorch moves LocateAnything-3B onto CUDA/MPS. The UI now surfaces the backend error directly, so check the toast message or backend logs for the real cause, such as CUDA OOM, missing NVIDIA runtime, driver mismatch, or a dependency import error.
+If the local fallback stays at `Loading to GPU`, the model files were already found and the failure is likely happening while PyTorch moves LocateAnything-3B onto CUDA/MPS. Check the toast or backend logs for CUDA OOM, missing NVIDIA runtime, driver mismatch, or a dependency import error. For Jev errors, check `TYPESAFE_API_KEY`, network access, and the backend log line that includes the TypeSafe error detail.
 
-Useful Docker checks:
+Native checks:
 
 ```bash
-docker compose logs backend --tail=200
-docker compose exec backend python - <<'PY'
+tail -n 200 deploy.log
+backend/.venv/bin/python - <<'PY'
 import torch
-print("cuda:", torch.cuda.is_available())
+print("torch:", torch.__version__, "hip:", torch.version.hip)
+print("cuda/rocm available:", torch.cuda.is_available())
 print("device:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else None)
-print("mem:", torch.cuda.mem_get_info() if torch.cuda.is_available() else None)
 PY
-nvidia-smi
+rocm-smi    # AMD ROCm
+nvidia-smi  # NVIDIA CUDA
 ```
 
 ## API Reference
@@ -328,29 +332,20 @@ Full API documentation with request/response examples: **[docs/API.md](docs/API.
 |----------|-----------|----------|
 | macOS (Apple Silicon) | MPS | MPS |
 | Linux / Windows (NVIDIA) | CUDA | CUDA |
+| Linux (AMD ROCm) | ROCm via PyTorch `cuda` | ROCm via PyTorch `cuda` |
+| CPU | Local VLM / SAM2 / SAM3 / YOLO | CPU (slow) |
 
-Auto-detection: CUDA → MPS. Override via `DEVICE` env. **CPU not supported.**
-
-## Inference Benchmarks
-
-Tested locally on an **Apple MacBook Pro (M4 Pro, 24GB Unified Memory)** using Apple MPS hardware acceleration.
-
-| Image Resolution (Max Side) | Inference Latency | Actual Memory Footprint |
-| :--- | :--- | :--- |
-| **Thumbnail (256px)** | `~0.68s` | Stable around `~11.8GB` |
-| **High-Res (1024px)** | `~4.35s` | Stable around `~11.8GB` |
-
-Full detailed benchmarks across different hardware configurations: **[docs/BENCHMARKS.md](docs/BENCHMARKS.md)**
+Auto-detection: CUDA/ROCm → MPS → CPU. Override at runtime from the sidebar or via `DEVICE` env.
 
 ## Highlights
 
-- **MPS / CUDA full-pipeline GPU acceleration** — VLM, SAM2, and YOLO training all GPU-accelerated
+- **MPS / CUDA full-pipeline GPU acceleration** — local fallback, SAM2, and YOLO training are GPU-accelerated; Jev runs remotely
 - **Strategy Pattern GPU memory** — `gpu_memory.py` centralizes CUDA / MPS cleanup; `expandable_segments:True`
-- **SAM2 / SAM3 mask refinement** — SAM2 refines VLM bboxes; SAM3 does text-driven detection+segmentation in one pass
+- **SAM2 / SAM3 mask refinement** — SAM2 refines Jev bboxes; SAM3 does text-driven detection+segmentation in one pass
 - **5 export formats** — YOLO, YOLO-Seg, COCO, Pascal VOC, CreateML; export selected records or the full detection history
 - **Detect & Segment training** — polygon labels auto-used when SAM2 masks are available
 - **Cross-platform** — macOS MPS, Windows / Linux CUDA, unified codebase
-- **Unified SSE model status** — single EventSource for VLM, SAM2, SAM3 states; no polling
+- **Unified SSE model status** — single EventSource for Jev, local fallback, SAM2, and SAM3 states; no polling
 
 ## Development
 
@@ -364,15 +359,16 @@ PYTHONPATH=. alembic upgrade head
 python -m compileall app alembic
 ```
 
-## Stargazers
+## Acknowledgements
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Somnusochi/VLM-AutoYOLO&type=Date)](https://star-history.com/#Somnusochi/VLM-AutoYOLO&Date)
+This project is derived from and builds on [VLM-AutoYOLO](https://github.com/Somnusochi/VLM-AutoYOLO). Thanks to the original author and contributors.
 
 ## License
 
 Code: [AGPL-3.0](LICENSE).
 
 Third-party dependencies:
+- Jev / TypeSafe System One — hosted API, subject to the [TypeSafe terms](https://docs.typesafe.ai/legal.md)
 - LocateAnything-3B model — [NVIDIA License](https://huggingface.co/nvidia/LocateAnything-3B/blob/main/LICENSE) (non-commercial use only)
 - SAM3 model — [Facebook Research License](https://huggingface.co/facebook/sam3) (gated repository, requires HuggingFace access token)
 - Ultralytics YOLO — [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) (copyleft; training/deployment may trigger obligations)

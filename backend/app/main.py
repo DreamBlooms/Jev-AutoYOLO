@@ -4,11 +4,12 @@ import logging
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .api.routes.detection import router as detection_router
@@ -22,6 +23,7 @@ from .core.database import init_db
 from .core.exceptions import AppError
 from .core.logging import setup_logging
 from .core.middleware import RequestTracingMiddleware
+from .services.runtime_config import get_runtime_config, set_inference_device
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +36,10 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     setup_logging()
     init_db()
+
+    from .services.model_manager import restore_paths
+
+    restore_paths()
 
     # 清理上次意外中断的训练任务
     from .core.database import SessionLocal
@@ -57,7 +63,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="VLM-AutoYOLO API",
+    title="Jev-AutoYOLO API",
     version="0.1.0",
     lifespan=lifespan,
     default_response_class=JSONResponse,
@@ -114,15 +120,32 @@ async def general_exception_handler(_request: Request, exc: Exception) -> JSONRe
 
 app.include_router(detection_router)
 app.include_router(export_router)
-app.include_router(predict_router)
 app.include_router(import_router)
-app.include_router(train_router)
 app.include_router(video_router)
+app.include_router(predict_router)
+app.include_router(train_router)
 
 
 @app.get("/api/health")
 async def health() -> dict:
     return {"status": "ok", "version": "0.1.0"}
+
+
+@app.get("/api/v1/config")
+def app_config() -> dict:
+    return get_runtime_config()
+
+
+class DeviceSelection(BaseModel):
+    device: str
+
+
+@app.post("/api/v1/config/device")
+def switch_inference_device(body: DeviceSelection) -> dict:
+    try:
+        return set_inference_device(body.device)
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
 
 
 # Mount frontend conditionally (for single-container deployments)

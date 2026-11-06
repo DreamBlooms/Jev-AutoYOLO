@@ -16,8 +16,16 @@ from ...models.detection import FilterMode
 from ...repositories.detection import DetectionRepository
 from ...schemas.common import APIResponse, BaseSchema
 from ...schemas.detection import DetectionListItem, DetectionOut, DetectionParams
+from ...services import model_manager
 from ...services.detection_service import process_detection
-from ...services.locate_anything import get_model_status, is_model_loaded, unload_model
+from ...services.jev_service import get_status as get_jev_status
+from ...services.locate_anything import (
+    get_model_status as get_local_model_status,
+)
+from ...services.locate_anything import (
+    is_model_loaded,
+    unload_model,
+)
 from ...services.sam2_service import get_sam2_status, is_sam_loaded, unload_sam
 from ...services.sam3_client import is_sam3_running, stop_sam3_server
 from ..deps import get_repo
@@ -38,6 +46,10 @@ def _save_upload(file: UploadFile) -> tuple[str, str]:
 async def create_detection(
     file: UploadFile = File(...),
     categories: str = Form(...),
+    extra_state: str = Form(""),
+    extra_instructions: str = Form(""),
+    category_instructions: str = Form(""),
+    use_vlm: bool = Form(False),
     use_sam2: bool = Form(False),
     use_sam3: bool = Form(False),
     sam2_score_threshold: float = Form(0.0, ge=0.0, le=1.0),
@@ -63,6 +75,37 @@ async def create_detection(
     if not cat_list:
         raise HTTPException(400, detail="categories cannot be empty")
 
+    parsed_extra_state = None
+    if extra_state.strip():
+        if len(extra_state) > 16_384:
+            raise HTTPException(400, detail="extra_state exceeds 16KB")
+        try:
+            parsed_extra_state = json.loads(extra_state)
+        except json.JSONDecodeError as exc:
+            raise HTTPException(400, detail="extra_state must be valid JSON") from exc
+        if not isinstance(parsed_extra_state, (dict, list, str)):
+            raise HTTPException(400, detail="extra_state must be a JSON object, array, or string")
+    if len(extra_instructions) > 4_000:
+        raise HTTPException(400, detail="extra_instructions exceeds 4000 characters")
+
+    parsed_category_instructions = None
+    if category_instructions.strip():
+        if len(category_instructions) > 8_192:
+            raise HTTPException(400, detail="category_instructions exceeds 8KB")
+        try:
+            parsed_category_instructions = json.loads(category_instructions)
+        except json.JSONDecodeError as exc:
+            raise HTTPException(400, detail="category_instructions must be valid JSON") from exc
+        if not isinstance(parsed_category_instructions, dict):
+            raise HTTPException(400, detail="category_instructions must be a JSON object")
+        if not all(
+            isinstance(key, str) and isinstance(value, str)
+            for key, value in parsed_category_instructions.items()
+        ):
+            raise HTTPException(400, detail="category_instructions values must be strings")
+        if any(len(value) > 1_000 for value in parsed_category_instructions.values()):
+            raise HTTPException(400, detail="each category instruction exceeds 1000 characters")
+
     filepath, safe_name = _save_upload(file)
     original_name = Path(file.filename).name  # type: ignore[arg-type]
 
@@ -72,6 +115,10 @@ async def create_detection(
             original_name=original_name,
             categories=cat_list,
             params=DetectionParams(
+                use_vlm=use_vlm,
+                extra_state=parsed_extra_state,
+                extra_instructions=extra_instructions,
+                category_instructions=parsed_category_instructions,
                 use_sam2=use_sam2,
                 use_sam3=use_sam3,
                 sam2_score_threshold=sam2_score_threshold,
@@ -259,24 +306,56 @@ def get_detection_image(
     return FileResponse(str(path))
 
 
+def _status_payload(status: dict) -> dict:
+    return {
+        "loaded": status["state"] == "loaded",
+        "state": status["state"],
+        "mode": status.get("mode", "remote"),
+        "model": status.get("model", ""),
+        "stage": status.get("stage", ""),
+        "progress": status.get("progress", 0),
+        "error": status.get("error", ""),
+    }
+
+
 @router.get("/model/status")
 def model_status() -> APIResponse:
-    status = get_model_status()
+    status = get_jev_status()
+    local = model_manager.merge_status("vlm", get_local_model_status())
     return APIResponse(
         data={
-            "loaded": status["state"] == "loaded",
-            "state": status["state"],
-            "stage": status["stage"],
-            "progress": status["progress"],
-            "error": status["error"],
+            **_status_payload(status),
+            "fallback": {
+                "state": local["state"],
+                "stage": local["stage"],
+                "progress": local["progress"],
+                "error": local["error"],
+            },
         }
     )
 
 
 @router.post("/model/unload", status_code=204)
 def model_unload() -> None:
+    # Jev is a remote API and has no local state to unload. This endpoint only
+    # releases the local LocateAnything fallback when it has been loaded.
     if is_model_loaded():
         unload_model()
+    model_manager.reset("vlm")
+
+
+@router.get("/model/download/status")
+def download_status() -> APIResponse:
+    return APIResponse(data=model_manager.get_all_status())
+
+
+@router.post("/model/{kind}/download", status_code=202)
+def download_model(kind: str) -> APIResponse:
+    try:
+        status = model_manager.start_download(kind)
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+    return APIResponse(data=status)
 
 
 @router.get("/model/sam2/status")
@@ -297,6 +376,7 @@ def sam2_status() -> APIResponse:
 def sam2_unload() -> None:
     if is_sam_loaded():
         unload_sam()
+    model_manager.reset("sam2")
 
 
 @router.get("/model/sam3/status")
@@ -316,7 +396,7 @@ def sam3_status() -> APIResponse:
 
 @router.get("/model/events")
 async def model_events():
-    """SSE endpoint that pushes combined model status for VLM, SAM2, and SAM3."""
+    """SSE endpoint that pushes Jev, local fallback, SAM2, and SAM3 status."""
 
     async def event_stream():
         import urllib.request
@@ -329,11 +409,10 @@ async def model_events():
         prev_sam3: dict = {"loaded": False, "status": "unloaded"}
 
         while True:
-            # VLM status
-            vlm = get_model_status()
-
-            # SAM2 status
-            sam2 = get_sam2_status()
+            # Jev is the primary provider; vlm is the local fallback state.
+            jev = get_jev_status()
+            vlm = model_manager.merge_status("vlm", get_local_model_status())
+            sam2 = model_manager.merge_status("sam2", get_sam2_status())
 
             # SAM3 status — keep previous value on transient health check failure
             # (SAM3's WSGI server is single-threaded; /health times out during inference)
@@ -351,15 +430,21 @@ async def model_events():
             except Exception:
                 pass
 
-            payload = json.dumps({"vlm": vlm, "sam2": sam2, "sam3": sam3_data})
+            sam3_data = model_manager.merge_sam3(sam3_data)
+            payload = json.dumps({"jev": jev, "vlm": vlm, "sam2": sam2, "sam3": sam3_data})
             if payload != prev:
                 prev = payload
                 yield f"data: {payload}\n\n"
 
             # Use fast interval while any model is in transition, slow otherwise
             all_stable = all(
-                s in ("loaded", "unloaded")
-                for s in (vlm.get("state", ""), sam2.get("state", ""), sam3_data.get("status", ""))
+                s in ("loaded", "unloaded", "error")
+                for s in (
+                    jev.get("state", ""),
+                    vlm.get("state", ""),
+                    sam2.get("state", ""),
+                    sam3_data.get("status", ""),
+                )
             )
             if all_stable:
                 stable_count += 1
@@ -376,3 +461,4 @@ async def model_events():
 def sam3_unload() -> None:
     if is_sam3_running():
         stop_sam3_server()
+    model_manager.reset("sam3")

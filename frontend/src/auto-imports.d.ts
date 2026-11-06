@@ -8,6 +8,7 @@ export {}
 declare global {
   const API_BASE: typeof import('./lib/constants').API_BASE
   const Activity: typeof import('react').Activity
+  const AnnotationExportPanel: typeof import('./components/AnnotationExportPanel/index').AnnotationExportPanel
   const BOX_COLORS: typeof import('./lib/constants').BOX_COLORS
   const BatchProgress: typeof import('./components/BatchProgress/index').BatchProgress
   const CANVAS_MAX_H: typeof import('./lib/constants').CANVAS_MAX_H
@@ -27,6 +28,7 @@ declare global {
   const DetectionControls: typeof import('./components/Sidebar/DetectionControls').DetectionControls
   const DetectionResult: typeof import('./components/DetectionResult/index').DetectionResult
   const DetectionSkeleton: typeof import('./components/LoadingSkeleton/index').DetectionSkeleton
+  const DeviceSelector: typeof import('./components/DeviceSelector/index').DeviceSelector
   const ErrorBoundary: typeof import('./components/ErrorBoundary/index').ErrorBoundary
   const ExtractionPanel: typeof import('./components/VideoPanel/ExtractionPanel').ExtractionPanel
   const FilterPanel: typeof import('./components/FilterPanel/index').FilterPanel
@@ -37,10 +39,12 @@ declare global {
   const Home: typeof import('./pages/Home').Home
   const HoverPreview: typeof import('./components/Training/HoverPreview/index').HoverPreview
   const ImageUploader: typeof import('./components/ImageUploader/index').ImageUploader
+  const JevAdvancedSettings: typeof import('./components/JevAdvancedSettings/index').JevAdvancedSettings
   const JobHistoryList: typeof import('./components/Training/JobHistoryList/index').JobHistoryList
   const KeyframeGrid: typeof import('./components/KeyframeGrid/index').KeyframeGrid
   const Layout: typeof import('./components/Layout/index').Layout
   const MAX_UPLOAD_SIZE_MB: typeof import('./lib/constants').MAX_UPLOAD_SIZE_MB
+  const ModelDownloadButton: typeof import('./components/ModelDownloadButton/index').ModelDownloadButton
   const ModelSelector: typeof import('./components/ModelSelector/index').ModelSelector
   const ModelStatus: typeof import('./components/ModelStatus/index').ModelStatus
   const QueryClient: typeof import('@tanstack/react-query').QueryClient
@@ -82,6 +86,7 @@ declare global {
   const detectImage: typeof import('./services/api').detectImage
   const downloadBlob: typeof import('./services/api').downloadBlob
   const downloadDatasetUrl: typeof import('./services/api').downloadDatasetUrl
+  const downloadModel: typeof import('./services/api').downloadModel
   const downloadModelUrl: typeof import('./services/api').downloadModelUrl
   const downloadOnnxUrl: typeof import('./services/api').downloadOnnxUrl
   const downloadYoloTxt: typeof import('./lib/yoloExport').downloadYoloTxt
@@ -96,6 +101,7 @@ declare global {
   const formatTime: typeof import('./lib/formatTime').formatTime
   const forwardRef: typeof import('react').forwardRef
   const generateYoloTxt: typeof import('./lib/yoloExport').generateYoloTxt
+  const getAppConfig: typeof import('./services/api').getAppConfig
   const getDetection: typeof import('./services/api').getDetection
   const getFileUrl: typeof import('./lib/cache').getFileUrl
   const getModelStatus: typeof import('./services/api').getModelStatus
@@ -116,6 +122,7 @@ declare global {
   const renameTrainingJob: typeof import('./services/api').renameTrainingJob
   const request: typeof import('./services/request').request
   const saveFilterSettings: typeof import('./services/api').saveFilterSettings
+  const setInferenceDevice: typeof import('./services/api').setInferenceDevice
   const startTraining: typeof import('./services/api').startTraining
   const startTransition: typeof import('react').startTransition
   const toast: typeof import('react-hot-toast').toast
@@ -257,7 +264,7 @@ declare global {
   export type { FilterMode } from './lib/filterBoxes'
   import('./lib/filterBoxes')
   // @ts-ignore
-  export type { YoloSeries, ImportResult, ImportProgress, ChunkInitResult } from './services/api'
+  export type { YoloSeries, AppConfig, ModelKind, ModelDownloadStatus, ImportResult, ImportProgress, ChunkInitResult } from './services/api'
   import('./services/api')
   // @ts-ignore
   export type { BBox, Detection, DetectResponse, TrainingJob, KeyFrame, VideoInfo, ListResponse } from './types/index'

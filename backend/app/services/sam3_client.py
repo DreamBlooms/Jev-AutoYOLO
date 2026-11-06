@@ -10,6 +10,8 @@ import threading
 import time
 from pathlib import Path
 
+from ..core.config import hf_repo_cache_dir
+
 logger = logging.getLogger(__name__)
 
 SAM3_PORT = 8002
@@ -83,14 +85,22 @@ def start_sam3_server() -> None:
     if _is_sam3_loaded():
         return
 
+    from app.core.config import settings
+
     hf_token = os.environ.get("HF_TOKEN", "")
-    # Only require HF_TOKEN if the model hasn't been cached yet
-    model_cache = Path.home() / ".cache" / "huggingface" / "hub" / "models--facebook--sam3"
-    if not hf_token and not model_cache.exists():
+    local_model = settings.sam3_model_path.strip()
+    model_cache = hf_repo_cache_dir("facebook/sam3")
+    modelscope_cache = settings.resolved_modelscope_dir / "sam3"
+    modelscope_ready = (modelscope_cache / "config.json").is_file() and (
+        (modelscope_cache / "model.safetensors").is_file()
+        or (modelscope_cache / "sam3.pt").is_file()
+    )
+    # Only require HF_TOKEN if the model has no local path/cache.
+    if not local_model and not hf_token and not model_cache.exists() and not modelscope_ready:
         raise RuntimeError(
             "HF_TOKEN environment variable is not set and SAM3 model is not cached. "
             "Visit https://huggingface.co/facebook/sam3 to accept the license, "
-            "then set HF_TOKEN with your access token."
+            "then set HF_TOKEN, or download SAM3 from the web UI with ModelScope."
         )
 
     server_script = Path(__file__).resolve().parent.parent.parent / "sam3_server.py"
@@ -99,11 +109,26 @@ def start_sam3_server() -> None:
     if venv_python.exists():
         python = str(venv_python)
     else:
+        try:
+            import transformers
+
+            major = int(transformers.__version__.split(".")[0])
+        except Exception:
+            major = 0
+        if major < 5:
+            raise RuntimeError(
+                "SAM3 requires transformers>=5 but the backend environment has "
+                f"transformers {major}.x. Create a separate environment: "
+                "python -m venv backend/sam3-venv && "
+                "backend/sam3-venv/bin/pip install -r backend/requirements-sam3.txt"
+            )
         python = sys.executable
         logger.warning("sam3-venv not found at %s, falling back to %s", venv_python, python)
 
     env = os.environ.copy()
     env["HF_TOKEN"] = hf_token
+    env["DEVICE"] = settings.device.strip() or settings.resolved_device
+    env["SAM3_MODEL_PATH"] = local_model
 
     sam3_log = open(Path(__file__).resolve().parent.parent.parent / "sam3_server.log", "a")  # noqa: SIM115
     logger.info("Starting SAM3 server on port %d (logging to sam3_server.log)...", SAM3_PORT)
@@ -114,12 +139,13 @@ def start_sam3_server() -> None:
         env=env,
     )
     # Wait for model to be fully loaded (not just server alive)
-    for _ in range(60):
+    timeout = max(30, settings.sam3_startup_timeout_seconds)
+    for _ in range(timeout):
         time.sleep(1)
         if _is_sam3_loaded():
             logger.info("SAM3 server ready")
             return
-    raise RuntimeError("SAM3 model did not load within 60s")
+    raise RuntimeError(f"SAM3 model did not load within {timeout}s")
 
 
 def stop_sam3_server() -> None:

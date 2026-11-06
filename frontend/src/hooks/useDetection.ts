@@ -23,6 +23,10 @@ export function useDetectMutation() {
       useSam2,
       sam2ScoreThreshold,
       useSam3,
+      useVlm,
+      extraState,
+      extraInstructions,
+      categoryInstructions,
       sam3Text,
       useSam3Seg,
       sam3Threshold,
@@ -34,6 +38,10 @@ export function useDetectMutation() {
       useSam2?: boolean;
       sam2ScoreThreshold?: number;
       useSam3?: boolean;
+      useVlm?: boolean;
+      extraState?: string;
+      extraInstructions?: string;
+      categoryInstructions?: Record<string, string>;
       sam3Text?: string;
       useSam3Seg?: boolean;
       sam3Threshold?: number;
@@ -46,10 +54,14 @@ export function useDetectMutation() {
         useSam2,
         sam2ScoreThreshold,
         useSam3,
+        useVlm,
         sam3Text,
         useSam3Seg,
         sam3Threshold,
         sam3MaskThreshold,
+        extraState,
+        extraInstructions,
+        categoryInstructions,
         signal,
       ),
     onMutate: ({ useSam2 }) => {

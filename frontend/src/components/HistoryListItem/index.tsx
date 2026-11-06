@@ -75,16 +75,24 @@ export const HistoryListItem = memo(
                     className={`inline-block rounded px-1 py-0.5 mr-1 text-[10px] font-medium ${
                       det.modelType === "sam3"
                         ? "bg-violet-100 text-violet-700"
-                        : det.modelType === "vlm+sam2"
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-blue-100 text-blue-700"
+                        : det.modelType?.startsWith("jev")
+                          ? "bg-emerald-100 text-emerald-700"
+                          : det.modelType === "vlm+sam2"
+                            ? "bg-amber-100 text-amber-700"
+                            : "bg-blue-100 text-blue-700"
                     }`}
                   >
                     {det.modelType === "sam3"
                       ? "SAM3"
-                      : det.modelType === "vlm+sam2"
-                        ? "VLM+SAM2"
-                        : "VLM"}
+                      : det.modelType?.startsWith("jev")
+                        ? det.modelType === "jev+sam3"
+                          ? "JEV+SAM3"
+                          : det.modelType === "jev+sam2"
+                            ? "JEV+SAM2"
+                            : "JEV"
+                        : det.modelType === "vlm+sam2"
+                          ? "VLM+SAM2"
+                          : "VLM"}
                   </span>
                 )}
                 {t("trainingPanel.targetsCount", { count: det.boxes.length })}

@@ -31,7 +31,7 @@ class DetectionRepository:
         image_width: int,
         image_height: int,
         categories: list,  # JSONB stores Python list directly
-        model_name: str = "LocateAnything-3B",
+        model_name: str = "Jev",
         commit: bool = False,
     ) -> Detection:
         det = Detection(

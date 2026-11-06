@@ -1,8 +1,8 @@
 # Annotation Best Practices
 
-High-quality labeled data is the key to training excellent models. This guide shares tips and tricks for VLM pre-labeling and manual refinement.
+High-quality labeled data is the key to training excellent models. This guide shares tips and tricks for Jev pre-labeling and manual refinement.
 
-## VLM Pre-Labeling Tips
+## Jev Pre-Labeling Tips
 
 ### 1. Be Specific with Category Descriptions
 
@@ -19,7 +19,7 @@ vehicle, animal, device
 object, thing, item
 ```
 
-**Why**: VLM understands specific descriptions more accurately and generates more precise bounding boxes.
+**Why**: Jev understands specific descriptions more accurately and generates more precise bounding boxes.
 
 ### 2. English Works Better
 
@@ -50,7 +50,7 @@ Third pass: bicycle, motorcycle
 
 ### 4. Leverage Natural Language Descriptions
 
-LocateAnything-3B supports natural language, enabling more complex scene descriptions:
+Jev supports natural language, enabling more complex scene descriptions:
 
 ```
 person holding umbrella
@@ -73,7 +73,7 @@ bottle on table
 ### 1. Start Global, Then Go Local
 
 **Recommended workflow**:
-1. First use "All" mode to view complete VLM detection results
+1. First use "All" mode to view complete Jev detection results
 2. Switch to "Best" mode to check the best box for each category
 3. Use "NMS" mode to remove overlapping boxes
 4. Finally enter "Annotation" mode for fine adjustments
@@ -82,7 +82,7 @@ bottle on table
 
 | Mode | Use Case | Description |
 |------|----------|-------------|
-| **All** | Initial review | View all detection boxes to understand VLM detection status |
+| **All** | Initial review | View all detection boxes to understand Jev detection status |
 | **Best** | Quick filtering | Keep only one best box per category, suitable for clear category scenarios |
 | **NMS** | Deduplication | Remove overlapping boxes, IoU threshold adjustable (0.3-0.7) |
 
@@ -214,7 +214,7 @@ Check before export:
 ### 1. Iterative Labeling
 
 **Workflow**:
-1. First use VLM to label a small batch (50-100 images)
+1. First use Jev to label a small batch (50-100 images)
 2. Train an initial model
 3. Use this model to pre-label more images
 4. Manually refine and train again
@@ -245,7 +245,7 @@ Don't just look at mAP metrics after training:
 ## Summary
 
 Keys to high-quality annotation:
-1. **VLM Pre-Labeling**: Use specific English descriptions, detect in batches
+1. **Jev Pre-Labeling**: Use specific English descriptions, detect in batches
 2. **Manual Refinement**: Start global then local, use filter modes wisely
 3. **Video Annotation**: Choose appropriate extraction method, don't select all
 4. **Dataset Preparation**: Sufficient quantity, balanced categories, high quality

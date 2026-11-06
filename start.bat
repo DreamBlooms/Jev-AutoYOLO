@@ -10,7 +10,7 @@ echo Backend:  http://localhost:8000
 echo Frontend: http://localhost:5173
 echo API Docs: http://localhost:8000/docs
 echo.
-echo [NOTE] VLM and SAM models are lazy-loaded.
+echo [NOTE] Jev is remote; the local fallback and SAM models are lazy-loaded.
 echo They will appear as 'Unloaded' in the web UI until your first detection.
 echo.
 echo Press Ctrl+C in each window to stop.

@@ -6,11 +6,17 @@ import contextlib
 import logging
 import multiprocessing
 import threading
+import uuid as uuid_lib
 
 from ..core.database import SessionLocal
 from ..models.train import TrainingJob
 
 logger = logging.getLogger(__name__)
+
+
+def _as_uuid(value: str | uuid_lib.UUID) -> uuid_lib.UUID:
+    return value if isinstance(value, uuid_lib.UUID) else uuid_lib.UUID(str(value))
+
 
 # CUDA cannot be re-initialized after fork(). Use 'spawn' to start a fresh
 # process that imports CUDA from scratch. Must be set before any Process() call.
@@ -112,7 +118,9 @@ def _worker_loop() -> None:
                 task_type,
             ),
             name=f"train-{job_id[:8]}",
-            daemon=True,
+            # Ultralytics DataLoader creates worker processes; a daemonic
+            # process cannot have children on any platform.
+            daemon=False,
         )
         _running_process = proc
         proc.start()
@@ -126,7 +134,7 @@ def _worker_loop() -> None:
         if proc.exitcode != 0:
             db = SessionLocal()
             try:
-                job = db.query(TrainingJob).filter(TrainingJob.id == job_id).first()
+                job = db.query(TrainingJob).filter(TrainingJob.id == _as_uuid(job_id)).first()
                 if job and job.status == "running":
                     job.status = "cancelled"
                     db.commit()
@@ -174,7 +182,7 @@ def cancel_job(job_id: str) -> bool:
         # Update DB status
         db = SessionLocal()
         try:
-            job = db.query(TrainingJob).filter(TrainingJob.id == job_id).first()
+            job = db.query(TrainingJob).filter(TrainingJob.id == _as_uuid(job_id)).first()
             if job and job.status in ("pending", "running"):
                 job.status = "cancelled"
                 db.commit()
@@ -188,7 +196,7 @@ def cancel_job(job_id: str) -> bool:
     # Check if it's a pending job
     db = SessionLocal()
     try:
-        job = db.query(TrainingJob).filter(TrainingJob.id == job_id).first()
+        job = db.query(TrainingJob).filter(TrainingJob.id == _as_uuid(job_id)).first()
         if job and job.status == "pending":
             job.status = "cancelled"
             db.commit()

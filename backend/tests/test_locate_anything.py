@@ -80,11 +80,57 @@ def test_parse_boxes_empty_or_invalid():
     assert parse_boxes("<box><1><2><3><4></box>", 1000, 1000) == []
 
 
-def test_validate_vlm_device_rejects_cpu():
+def test_model_dtype_uses_float32_on_cpu():
+    import torch
+
+    from app.services.locate_anything import _model_dtype
+
+    assert _model_dtype("cpu") is torch.float32
+    assert _model_dtype("cuda") is torch.bfloat16
+
+
+def test_rocm_detection(monkeypatch):
+    import torch
+
+    from app.core.gpu_memory import is_rocm
+
+    monkeypatch.setattr(torch.version, "hip", "7.2.26015", raising=False)
+    assert is_rocm() is True
+
+
+def test_model_dtype_rocm_without_bf16_falls_back_to_fp16(monkeypatch):
+    import torch
+
+    from app.services.locate_anything import _model_dtype
+
+    monkeypatch.setattr(torch.version, "hip", "7.2.26015", raising=False)
+    monkeypatch.setattr(torch.cuda, "is_bf16_supported", lambda: False)
+    assert _model_dtype("cuda") is torch.float16
+
+
+def test_cpu_memory_manager():
+    from app.core.gpu_memory import CPUMemoryManager, create_memory_manager
+
+    manager = create_memory_manager("cpu")
+    assert isinstance(manager, CPUMemoryManager)
+    assert manager.device == "cpu"
+    assert manager.resolve_max_long_side() == 800
+
+
+def test_validate_vlm_device_accepts_cpu():
     from app.core.gpu_memory import validate_vlm_device
 
-    with pytest.raises(RuntimeError, match="cannot run on CPU"):
-        validate_vlm_device("cpu")
+    validate_vlm_device("cpu")
+
+
+def test_detect_device_falls_back_to_cpu(monkeypatch):
+    import torch
+
+    from app.core import gpu_memory
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    monkeypatch.setattr(torch.backends.mps, "is_available", lambda: False)
+    assert gpu_memory._detect_device("") == "cpu"
 
 
 def test_get_worker_records_preflight_errors(monkeypatch):

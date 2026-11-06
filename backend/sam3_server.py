@@ -25,32 +25,53 @@ logger = logging.getLogger("sam3-server")
 DEVICE = "cpu"
 
 
+def _resolve_device() -> str:
+    requested = os.environ.get("DEVICE", "").strip().lower()
+    if requested == "cuda" and torch.cuda.is_available():
+        return "cuda"
+    if requested == "mps" and torch.backends.mps.is_available():
+        return "mps"
+    if requested == "cpu":
+        return "cpu"
+    if torch.cuda.is_available():
+        return "cuda"
+    if torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
 def load_model(state: dict):
     global DEVICE
     from transformers import Sam3Model, Sam3Processor
 
-    if torch.cuda.is_available():
-        DEVICE = "cuda"
-    elif torch.backends.mps.is_available():
-        DEVICE = "mps"
+    DEVICE = _resolve_device()
 
-    logger.info("Loading SAM3 to %s (bfloat16)...", DEVICE)
+    if DEVICE == "cpu":
+        dtype = torch.float32
+    elif not torch.cuda.is_bf16_supported():
+        dtype = torch.float16
+    else:
+        dtype = torch.bfloat16
+    logger.info("Loading SAM3 to %s (%s)...", DEVICE, dtype)
     state["status"] = "loading"
     state["device"] = DEVICE
 
     try:
-        # Use local_files_only when HF_TOKEN is not set (model already cached)
-        local_only = not os.environ.get("HF_TOKEN")
+        model_path = os.environ.get("SAM3_MODEL_PATH", "").strip()
+        source = model_path or "facebook/sam3"
+        # A local path always means offline loading; a HuggingFace cache can be
+        # used offline when no token is configured.
+        local_only = bool(model_path) or not os.environ.get("HF_TOKEN")
         model = (
             Sam3Model.from_pretrained(
-                "facebook/sam3",
-                torch_dtype=torch.bfloat16,
+                source,
+                torch_dtype=dtype,
                 local_files_only=local_only,
             )
             .to(DEVICE)
             .eval()
         )
-        processor = Sam3Processor.from_pretrained("facebook/sam3", local_files_only=local_only)
+        processor = Sam3Processor.from_pretrained(source, local_files_only=local_only)
         model.eval()
 
         state["model"] = model

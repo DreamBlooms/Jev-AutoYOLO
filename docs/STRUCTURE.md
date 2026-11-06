@@ -1,7 +1,7 @@
 # Project Structure
 
 ```
-VLM-AutoYOLO/
+Jev-AutoYOLO/
 ├── backend/
 │   ├── app/
 │   │   ├── api/
@@ -30,14 +30,18 @@ VLM-AutoYOLO/
 │   │   │   ├── detection.py         # DetectionOut, DetectionBoxOut, ExportBatchIn
 │   │   │   └── train.py             # TrainingJobOut, TrainRequest
 │   │   ├── services/
-│   │   │   ├── detection_strategy.py # Strategy pattern (VLM / VLM+SAM2 / SAM3)
+│   │   │   ├── detection_strategy.py # Strategy pattern (Jev / Jev+SAM2 / SAM3)
+│   │   │   ├── jev_service.py        # Jev requests, tiling, coordinate mapping, dedupe
+│   │   │   ├── vlm_provider.py       # Jev-first provider + local VLM fallback
+│   │   │   ├── model_manager.py      # Web ModelScope/HF download + init
+│   │   │   ├── runtime_config.py     # Runtime device switching/config
 │   │   │   ├── box_filter.py        # Box filtering, NMS dedup
-│   │   │   ├── locate_anything.py   # VLM inference engine
+│   │   │   ├── locate_anything.py   # local VLM fallback inference engine
 │   │   │   ├── sam2_service.py      # SAM2 segmentation service
 │   │   │   ├── sam3_client.py       # SAM3 HTTP client + watchdog
 │   │   │   ├── trainer.py           # YOLO training + validation
 │   │   │   ├── detection_service.py # Detection orchestration (offload → infer → persist)
-│   │   │   ├── detection_strategy.py # Strategy pattern (VLM / VLM+SAM2 / SAM3)
+│   │   │   ├── detection_strategy.py # Strategy pattern (Jev / Jev+SAM2 / SAM3)
 │   │   │   ├── dataset_import.py    # Dataset import parsers (5 formats)
 │   │   │   ├── training_queue.py    # Training job queue with cancel
 │   │   │   ├── export.py            # Multi-format export dispatcher
@@ -69,7 +73,11 @@ VLM-AutoYOLO/
 │       │   ├── HistoryList.tsx      # Detection history (paginated, export)
 │       │   ├── HistoryListItem.tsx  # Individual history item card
 │       │   ├── ResultTable.tsx      # Results table with mask column
-│       │   ├── ModelStatus.tsx      # VLM + SAM2 model status display
+│       │   ├── ModelStatus.tsx      # Jev/VLM + SAM2 model status
+│       │   ├── DeviceSelector.tsx   # CPU/GPU(ROCm/CUDA/MPS) switching
+│       │   ├── JevAdvancedSettings.tsx # Extra state / global & per-category instructions
+│       │   ├── AnnotationExportPanel.tsx # Annotation-only export panel
+│       │   ├── ModelDownloadButton.tsx # Web model pull & init display
 │       │   ├── Sam3Status.tsx       # SAM3 model status display
 │       │   ├── training/            # YOLO training sub-components
 │       │   │   ├── TrainingCandidateList.tsx
@@ -99,13 +107,16 @@ VLM-AutoYOLO/
 │       ├── services/api.ts          # Unified API layer
 │       ├── lib/                     # Constants, filters, parsers, yoloExport
 │       └── types/index.ts           # TypeScript types (BBox, Detection, TrainingJob)
-├── docs/                            # Documentation & screenshots
+├── docs/                            # Documentation
 │   ├── API.md                       # API reference
 │   ├── STRUCTURE.md                 # Project structure (this file)
+│   ├── architecture_diagram.md      # Chinese architecture/workflow Mermaid
+│   ├── architecture_diagram_en.md   # English architecture/workflow Mermaid
 │   ├── guide/                       # 中文用户指南
 │   └── guide/en/                    # English user guide
-├── docker-compose.yml
-├── commitlint.config.js            # Conventional commits enforcement
-├── start.sh / start.bat
+├── deploy.sh                       # Native production deploy/start/stop helper
+├── docker-compose.yml              # Optional container deployment
+├── start.sh / start.bat            # Development launchers
+├── AGENTS.md                       # Guidance for coding agents
 └── README.md
 ```

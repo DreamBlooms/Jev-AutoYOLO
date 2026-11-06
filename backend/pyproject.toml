@@ -1,7 +1,7 @@
 [project]
 name = "locate-anything-backend"
 version = "1.5.16"
-description = "Backend API for VLM-AutoYOLO - VLM-powered auto-labeling and YOLO training platform"
+description = "Backend API for Jev-AutoYOLO - Jev-powered auto-labeling and YOLO training platform"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115.0",
@@ -10,6 +10,8 @@ dependencies = [
     "psycopg2-binary>=2.9.0",
     "pydantic-settings>=2.6.0",
     "transformers>=4.57.1",
+    "typesafe-sdk[pil]>=0.7.5",
+    "modelscope>=1.20.0",
     "torch>=2.6.0",
     "Pillow>=11.0.0",
     "opencv-python-headless>=4.10.0",

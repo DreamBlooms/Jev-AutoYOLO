@@ -1,7 +1,7 @@
 # 项目结构
 
 ```
-VLM-AutoYOLO/
+Jev-AutoYOLO/
 ├── backend/
 │   ├── app/
 │   │   ├── api/
@@ -29,9 +29,13 @@ VLM-AutoYOLO/
 │   │   │   ├── detection.py         # DetectionOut、DetectionBoxOut、ExportBatchIn
 │   │   │   └── train.py             # TrainingJobOut、TrainRequest
 │   │   ├── services/
-│   │   │   ├── detection_strategy.py # 策略模式（VLM / VLM+SAM2 / SAM3）
+│   │   │   ├── detection_strategy.py # 策略模式（Jev / Jev+SAM2 / SAM3）
+│   │   │   ├── jev_service.py        # Jev 请求、分块、坐标映射与去重
+│   │   │   ├── vlm_provider.py       # Jev 优先 + 本地 VLM 回退
+│   │   │   ├── model_manager.py      # ModelScope/HF 网页下载与初始化
+│   │   │   ├── runtime_config.py     # 运行时设备切换与配置
 │   │   │   ├── box_filter.py        # 标注框过滤、NMS 去重
-│   │   │   ├── locate_anything.py   # VLM 推理引擎
+│   │   │   ├── locate_anything.py   # 本地回退 VLM 推理引擎
 │   │   │   ├── sam2_service.py      # SAM2 分割服务
 │   │   │   ├── sam3_client.py       # SAM3 HTTP 客户端 + 闲置看门狗
 │   │   │   ├── trainer.py           # YOLO 训练 + 验证
@@ -64,7 +68,11 @@ VLM-AutoYOLO/
 │       │   ├── HistoryList.tsx      # 检测历史（分页 + 导出下拉菜单）
 │       │   ├── HistoryListItem.tsx  # 历史记录单项卡片
 │       │   ├── ResultTable.tsx      # 结果表格（含 Mask 列）
-│       │   ├── ModelStatus.tsx      # VLM + SAM2 模型状态显示
+│       │   ├── ModelStatus.tsx      # Jev/VLM + SAM2 模型状态显示
+│       │   ├── DeviceSelector.tsx   # CPU/GPU(ROCm/CUDA/MPS) 切换
+│       │   ├── JevAdvancedSettings.tsx # 附加 state / 全局及按类别 instructions
+│       │   ├── AnnotationExportPanel.tsx # 仅标注模式导出面板
+│       │   ├── ModelDownloadButton.tsx # 网页拉取并初始化模型
 │       │   ├── Sam3Status.tsx       # SAM3 模型状态显示
 │       │   ├── training/            # YOLO 训练子组件
 │       │   │   ├── TrainingCandidateList.tsx
@@ -94,14 +102,16 @@ VLM-AutoYOLO/
 │       ├── services/api.ts          # 统一 API 层
 │       ├── lib/                     # 常量、过滤器、解析器、yoloExport
 │       └── types/index.ts           # TypeScript 类型（BBox, Detection, TrainingJob）
-├── docs/                            # 文档与截图
+├── docs/                            # 文档
 │   ├── API.md / API_ZH.md           # API 参考
 │   ├── STRUCTURE.md / STRUCTURE_ZH.md # 项目结构
-│   ├── BENCHMARKS.md / BENCHMARKS_ZH.md # 性能基准
+│   ├── architecture_diagram.md      # 中文架构/流程 Mermaid 图
+│   ├── architecture_diagram_en.md   # 英文架构/流程 Mermaid 图
 │   ├── guide/                       # 中文用户指南
 │   └── guide/en/                    # 英文用户指南
-├── docker-compose.yml
-├── commitlint.config.js            # Conventional Commits 规范
-├── start.sh / start.bat
+├── deploy.sh                       # 原生生产部署/启停脚本
+├── docker-compose.yml              # 可选容器化部署
+├── start.sh / start.bat            # 开发启动脚本
+├── AGENTS.md                       # 编码代理工作指南
 └── README.md
 ```

@@ -1,6 +1,6 @@
 {
   "common": {
-    "annotate": "标注预训练",
+    "annotate": "Jev 标注",
     "validate": "YOLO 验证",
     "image": "图片",
     "video": "视频",
@@ -250,7 +250,6 @@
     "statusCompleted": "已完成",
     "statusFailed": "失败",
     "statusCancelled": "已取消",
-    "downloadDataset": "下载数据集",
     "importDataset": "导入数据集",
     "downloadAllYoloSeg": "导出全部 YOLO Seg",
     "datasetDownloaded": "数据集下载成功",
@@ -297,16 +296,58 @@
     "status": "{{completed}} / {{total}} 完成",
     "cancel": "取消批处理"
   },
+  "deviceSelector": {
+    "label": "推理设备",
+    "auto": "自动",
+    "cpu": "CPU",
+    "cuda": "GPU (CUDA)",
+    "rocm": "GPU (ROCm)",
+    "mps": "GPU (MPS)",
+    "switching": "正在切换设备并卸载模型...",
+    "active": "当前: {{device}}",
+    "success": "推理设备已切换为 {{device}}",
+    "failed": "切换推理设备失败"
+  },
+  "jevAdvanced": {
+    "title": "Jev 高级 State 与 Instructions",
+    "hint": "可选。附加 state 会合并进 Jev 请求，可在 instructions 中用反引号引用键名，例如 `scene`；附加 instructions 会追加到每个问题。",
+    "stateLabel": "附加 State（JSON 对象、数组或字符串）",
+    "statePlaceholder": "{\"scene\": \"室内客厅\", \"notes\": \"猫可能被家具部分遮挡\"}",
+    "instructionsLabel": "附加 Instructions",
+    "instructionsPlaceholder": "注意被部分遮挡的猫和镜面反射。",
+    "invalidJson": "JSON 格式无效",
+    "clear": "清空",
+    "perCategoryLabel": "按类别设置 Instructions",
+    "perCategoryPlaceholder": "仅对该类别生效的附加说明。"
+  },
+  "annotationExport": {
+    "title": "导出标注",
+    "hint": "当前为仅标注模式：训练和模型验证已禁用，可直接导出已保存的标注。",
+    "exportAll": "导出全部（{{count}}）",
+    "exporting": "导出中...",
+    "success": "标注导出成功",
+    "failed": "导出失败"
+  },
   "modelStatus": {
-    "loaded": "VLM 模型已加载",
-    "unloaded": "VLM 模型未加载",
+    "jevNotConfigured": "Jev 未配置",
+    "vlmUnloadSuccess": "VLM 模型已卸载",
+    "vlmUnloadFailed": "VLM 模型卸载失败",
+    "vlmNotConfigured": "VLM 未配置",
+    "downloadInit": "拉取并初始化",
+    "downloadStarted": "已开始拉取模型",
+    "downloadFailed": "启动模型下载失败",
+    "downloadHint": "使用 ModelScope 拉取并初始化；VLM 未配置 ModelScope 镜像时回退 HuggingFace。",
+    "stageDownload": "正在下载模型...",
+    "stageInit": "正在初始化模型...",
+    "loaded": "已就绪",
+    "unloaded": "Jev 未配置",
     "download": "下载模型",
     "downloading": "正在下载模型...",
     "loading": "加载到 GPU...",
     "error": "模型错误",
     "unload": "卸载",
     "unloading": "卸载中...",
-    "unloadSuccess": "VLM 模型已卸载",
+    "unloadSuccess": "Jev 为远程 API，无需卸载",
     "unloadFailed": "卸载失败",
     "sam2Loaded": "SAM2 模型已加载",
     "sam2Unloaded": "SAM2 模型未加载",
@@ -321,6 +362,10 @@
     "stageTokenizer": "下载分词器...",
     "stageProcessor": "下载处理器...",
     "stageModel": "下载模型权重...",
-    "stageGpu": "加载到 GPU..."
+    "stageGpu": "加载到 GPU...",
+    "localModel": "本地模型",
+    "remote": "远程 API",
+    "localFallback": "本地回退",
+    "notConfigured": "未配置"
   }
 }

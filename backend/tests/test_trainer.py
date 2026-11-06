@@ -74,3 +74,14 @@ def test_detection_to_yolo_multiple_boxes():
     assert len(lines) == 2
     assert lines[0] == "0 0.200000 0.300000 0.200000 0.200000"
     assert lines[1] == "1 0.600000 0.700000 0.200000 0.400000"
+
+
+def test_loss_value_accepts_dict_and_tensor_like():
+    import torch
+
+    from app.services.trainer import _loss_value
+
+    assert _loss_value(torch.tensor([1.0, 2.0, 3.0])) == 2.0
+    assert _loss_value({"box_loss": 1.0, "cls_loss": 3.0}) == 2.0
+    assert _loss_value([2.0, 4.0]) == 3.0
+    assert _loss_value(None) == 0.0

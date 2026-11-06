@@ -23,6 +23,10 @@ export function useDetectionProcess() {
     useSam2,
     sam2ScoreThreshold,
     useSam3,
+    useVlm,
+    extraState,
+    extraInstructions,
+    categoryInstructions,
     sam3Text,
     useSam3Seg,
     sam3Threshold,
@@ -100,7 +104,8 @@ export function useDetectionProcess() {
   const handleDetect = useCallback(async () => {
     if (files.length === 0) return;
     if (useSam2) optimisticModelLoading("sam2");
-    if (!useSam2 && !useSam3) optimisticModelLoading("vlm");
+    if (useVlm) optimisticModelLoading("vlm");
+    else if (!useSam3) optimisticModelLoading("jev");
     timer.startTimer();
     batchFileMap.clear();
     const ctrl = newAbortController();
@@ -181,6 +186,10 @@ export function useDetectionProcess() {
         useSam2,
         sam2ScoreThreshold,
         useSam3,
+        useVlm,
+        extraState,
+        extraInstructions,
+        categoryInstructions,
         sam3Text,
         useSam3Seg,
         sam3Threshold,
@@ -212,6 +221,10 @@ export function useDetectionProcess() {
     useSam2,
     sam2ScoreThreshold,
     useSam3,
+    useVlm,
+    extraState,
+    extraInstructions,
+    categoryInstructions,
     sam3Text,
     useSam3Seg,
     sam3Threshold,
@@ -250,6 +263,10 @@ export function useDetectionProcess() {
         useSam2,
         sam2ScoreThreshold,
         useSam3,
+        useVlm,
+        extraState,
+        extraInstructions,
+        categoryInstructions,
         sam3Text,
         useSam3Seg,
         sam3Threshold,
@@ -271,6 +288,10 @@ export function useDetectionProcess() {
     useSam2,
     sam2ScoreThreshold,
     useSam3,
+    useVlm,
+    extraState,
+    extraInstructions,
+    categoryInstructions,
     sam3Text,
     useSam3Seg,
     sam3Threshold,

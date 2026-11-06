@@ -1,16 +1,21 @@
-export function ModelStatus() {
-  const { t } = useTranslation();
-  const { vlm, sam2 } = useModelEvents();
-  const [unloading, setUnloading] = useState(false);
-  const [unloadingSam2, setUnloadingSam2] = useState(false);
+import { ModelDownloadButton } from "@/components/ModelDownloadButton";
 
-  const state = vlm.state;
+export function ModelStatus({ mode = "jev" }: { mode?: "jev" | "vlm" }) {
+  const { t } = useTranslation();
+  const { jev, vlm, sam2 } = useModelEvents();
+  const [unloadingSam2, setUnloadingSam2] = useState(false);
+  const [unloadingVlm, setUnloadingVlm] = useState(false);
+
+  const active = mode === "vlm" ? vlm : jev;
+  const state = active.state;
   const loaded = state === "loaded";
+  const isError = state === "error";
   const isDownloading = state === "downloading";
   const isLoading = state === "loading";
-  const isError = state === "error";
-  const progress = vlm.progress;
-  const stage = vlm.stage;
+  const progress = active.progress;
+  const stage = active.stage;
+  const error = active.error;
+  const model = mode === "vlm" ? "LocateAnything-3B" : jev.model;
 
   const sam2State = sam2.state;
   const sam2Loaded = sam2State === "loaded";
@@ -20,16 +25,16 @@ export function ModelStatus() {
   const sam2Stage = sam2.stage;
   const sam2Error = sam2.error;
 
-  const handleUnload = useCallback(async () => {
-    setUnloading(true);
+  const handleUnloadVlm = useCallback(async () => {
+    setUnloadingVlm(true);
     try {
       await unloadModel();
-      toast.success(t("modelStatus.unloadSuccess"));
-    } catch {
-      toast.error(t("modelStatus.unloadFailed"));
-    } finally {
-      setUnloading(false);
       optimisticModelUnloaded("vlm");
+      toast.success(t("modelStatus.vlmUnloadSuccess"));
+    } catch {
+      toast.error(t("modelStatus.vlmUnloadFailed"));
+    } finally {
+      setUnloadingVlm(false);
     }
   }, [t]);
 
@@ -54,9 +59,21 @@ export function ModelStatus() {
     gpu: t("modelStatus.stageGpu"),
   };
 
+  const unloadedLabel =
+    mode === "vlm" ? t("modelStatus.vlmNotConfigured") : t("modelStatus.jevNotConfigured");
+
+  const modeLabel =
+    mode === "vlm"
+      ? t("modelStatus.localModel")
+      : jev.mode === "local-fallback"
+        ? t("modelStatus.localFallback")
+        : jev.mode === "unconfigured"
+          ? t("modelStatus.notConfigured")
+          : t("modelStatus.remote");
+
   return (
     <div className="space-y-1">
-      {/* VLM Model */}
+      {/* Primary model */}
       <div
         className={`rounded px-2.5 py-1.5 text-[11px] ${
           isError ? "bg-red-50 border border-red-200" : "bg-gray-50"
@@ -82,19 +99,26 @@ export function ModelStatus() {
                     ? t("modelStatus.error")
                     : loaded
                       ? t("modelStatus.loaded")
-                      : t("modelStatus.unloaded")}
+                      : unloadedLabel}
             </span>
+            <span className="text-[10px] text-gray-400">{modeLabel}</span>
           </span>
-          {loaded && (
-            <button
-              type="button"
-              disabled={unloading}
-              onClick={handleUnload}
-              className="text-gray-400 hover:text-red-500 disabled:opacity-50 transition-colors cursor-pointer"
-            >
-              {unloading ? t("modelStatus.unloading") : t("modelStatus.unload")}
-            </button>
-          )}
+          <span className="flex items-center gap-1">
+            {model && <span className="text-[10px] text-gray-400 truncate">{model}</span>}
+            {mode === "vlm" && !loaded && !isDownloading && !isLoading && (
+              <ModelDownloadButton kind="vlm" />
+            )}
+            {mode === "vlm" && loaded && (
+              <button
+                type="button"
+                disabled={unloadingVlm}
+                onClick={handleUnloadVlm}
+                className="text-[10px] text-gray-400 hover:text-red-500 disabled:opacity-50"
+              >
+                {unloadingVlm ? t("modelStatus.unloading") : t("modelStatus.unload")}
+              </button>
+            )}
+          </span>
         </div>
         {(isDownloading || isLoading) && (
           <div className="mt-1.5">
@@ -110,9 +134,9 @@ export function ModelStatus() {
             </div>
           </div>
         )}
-        {isError && vlm.error && (
-          <div className="mt-1 text-[10px] text-red-500 truncate max-w-[380px]" title={vlm.error}>
-            {vlm.error}
+        {isError && error && (
+          <div className="mt-1 text-[10px] text-red-500 truncate max-w-[380px]" title={error}>
+            {error}
           </div>
         )}
       </div>
@@ -146,7 +170,7 @@ export function ModelStatus() {
                       : t("modelStatus.sam2Unloaded")}
             </span>
           </span>
-          {sam2Loaded && (
+          {sam2Loaded ? (
             <button
               type="button"
               disabled={unloadingSam2}
@@ -155,6 +179,8 @@ export function ModelStatus() {
             >
               {unloadingSam2 ? t("modelStatus.unloading") : t("modelStatus.unload")}
             </button>
+          ) : (
+            !sam2Downloading && !sam2Loading && <ModelDownloadButton kind="sam2" />
           )}
         </div>
         {(sam2Downloading || sam2Loading) && (

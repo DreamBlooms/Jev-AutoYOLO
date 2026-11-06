@@ -52,6 +52,15 @@ class ModelState(enum.StrEnum):
     ERROR = "error"
 
 
+def _model_dtype(device: str):
+    """Choose a dtype for CPU, CUDA, MPS, and ROCm."""
+    if device == "cpu":
+        return torch.float32
+    if getattr(torch.version, "hip", None) and not torch.cuda.is_bf16_supported():
+        return torch.float16
+    return torch.bfloat16
+
+
 _model_state: dict = {
     "state": ModelState.UNLOADED,
     "stage": "",  # e.g. "tokenizer", "processor", "model", "gpu"
@@ -68,7 +77,7 @@ class LocateAnythingWorker:
         from transformers import AutoModel, AutoProcessor, AutoTokenizer
 
         self.device = device
-        self.dtype = torch.bfloat16
+        self.dtype = _model_dtype(device)
 
         gpu_mem = get_memory_manager()
 

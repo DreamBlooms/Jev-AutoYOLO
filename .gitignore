@@ -26,12 +26,39 @@ backend/.env
 .DS_Store
 
 # Misc
+.deploy.pid
+deploy.log
 *.log
 /tmp/
 backend/yolo26n.pt
 *.pt
 backend/data.db
+backend/autolabeling.db
 docs/src/
 .playwright-mcp/
 test-results/
 .cli_pids.json
+
+# Runtime-generated model / inference data
+backend/modelscope_models/
+backend/sam3-venv/
+backend/external_models/
+backend/pretrained/
+backend/*.db
+backend/*.db-*
+
+# Python tool caches
+.pytest_cache/
+.ruff_cache/
+backend/.pytest_cache/
+backend/.ruff_cache/
+
+# Frontend test/build caches
+frontend/.vite/
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
+
+# Local test fixtures / backups
+test_images/
+backup.sql

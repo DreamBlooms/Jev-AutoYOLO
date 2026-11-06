@@ -5,10 +5,13 @@ import { ModelSelector } from "./index";
 
 vi.mock("@tanstack/react-query", () => ({
   useQuery: () => ({
-    data: [
-      { id: "1", status: "completed", modelVariant: "yolov8n" },
-      { id: "2", status: "failed", modelVariant: "yolov8s" },
-    ],
+    data: {
+      items: [
+        { id: "1", status: "completed", modelVariant: "yolov8n" },
+        { id: "2", status: "failed", modelVariant: "yolov8s" },
+      ],
+      total: 2,
+    },
   }),
 }));
 

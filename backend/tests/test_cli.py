@@ -16,6 +16,31 @@ cli = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(cli)
 
 
+def test_detect_rocm_version(tmp_path):
+    version_file = tmp_path / "version"
+    version_file.write_text("7.2.3\n")
+    assert cli.detect_rocm_version(version_file) == "7.2"
+    version_file.write_text("not a version")
+    assert cli.detect_rocm_version(version_file) == ""
+    assert cli.detect_rocm_version(tmp_path / "missing") == ""
+
+
+def test_jev_model_needs_no_download(monkeypatch):
+    calls = []
+    monkeypatch.setattr(cli, "download_vlm", lambda: calls.append("vlm"))
+    monkeypatch.setattr(cli, "download_sam2", lambda: calls.append("sam2"))
+    cli.download_models("jev")
+    assert calls == []
+
+
+def test_all_models_means_jev_and_sam2(monkeypatch):
+    calls = []
+    monkeypatch.setattr(cli, "download_vlm", lambda: calls.append("vlm"))
+    monkeypatch.setattr(cli, "download_sam2", lambda: calls.append("sam2"))
+    cli.download_models("all")
+    assert calls == ["sam2"]
+
+
 def test_partial_model_cache_downloads(monkeypatch, tmp_path):
     model = tmp_path / "model"
     model.mkdir()
@@ -108,3 +133,22 @@ def test_install_node_deps_wraps_windows_cmd_shim(
     assert calls == [
         (["cmd", "/d", "/c", pnpm_cmd, "install"], {"cwd": tmp_path}),
     ]
+
+
+def test_download_sam2_skips_modelscope_cache(monkeypatch, tmp_path):
+    model = tmp_path / "modelscope_models" / "sam2"
+    model.mkdir(parents=True)
+    (model / "sam2.1_hiera_base_plus.pt").write_bytes(b"x")
+    monkeypatch.setattr(cli, "BACKEND", tmp_path)
+    monkeypatch.setattr(cli, "run", lambda *a, **k: pytest.fail("unexpected download"))
+    cli.download_sam2()
+
+
+def test_download_vlm_skips_modelscope_cache(monkeypatch, tmp_path):
+    model = tmp_path / "modelscope_models" / "vlm"
+    model.mkdir(parents=True)
+    (model / "config.json").write_text("{}")
+    (model / "model.safetensors").write_bytes(b"x" * (1024 * 1024 + 1))
+    monkeypatch.setattr(cli, "BACKEND", tmp_path)
+    monkeypatch.setattr(cli, "run", lambda *a, **k: pytest.fail("unexpected download"))
+    cli.download_vlm()

@@ -10,7 +10,11 @@ Base URL: `http://localhost:8000/api/v1`
 |-------|------|---------|-------------|
 | `file` | File | *required* | Image file |
 | `categories` | JSON array | *required* | `["cat", "dog"]` |
-| `use_sam2` | bool | `false` | Enable VLM + SAM2 pipeline |
+| `extra_state` | JSON string | `""` | Optional extra Jev state; object is merged, array/string goes to `context` |
+| `extra_instructions` | string | `""` | Optional text appended to every Jev question instruction (max 4000 chars) |
+| `category_instructions` | JSON object | `""` | Optional per-category instruction map, e.g. `{"cat":"only cats on the sofa"}` |
+| `use_vlm` | bool | `false` | Force local LocateAnything instead of Jev |
+| `use_sam2` | bool | `false` | Enable VLM/Jev + SAM2 pipeline |
 | `use_sam3` | bool | `false` | Enable SAM3 text-driven pipeline |
 | `sam2_score_threshold` | float | `0.0` | SAM2 mask quality threshold (0–1) |
 | `use_sam3_seg` | bool | `true` | Enable SAM3 mask extraction |
@@ -22,7 +26,7 @@ Base URL: `http://localhost:8000/api/v1`
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/detect` | Detection (multipart). Strategy: VLM (default), VLM+SAM2 (`use_sam2=true`), or SAM3 (`use_sam3=true`) |
+| POST | `/detect` | Detection (multipart). Strategy: Jev (default, local fallback when unavailable), Jev+SAM2 (`use_sam2=true`), or SAM3 (`use_sam3=true`) |
 | GET | `/detections` | List detections (paginated) |
 | GET | `/detections/{id}` | Detection detail |
 | GET | `/detections/{id}/image` | Original image |
@@ -40,9 +44,13 @@ Base URL: `http://localhost:8000/api/v1`
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/model/events` | SSE stream: combined VLM, SAM2, SAM3 status in one connection |
-| GET | `/model/status` | VLM model status (`loaded`, `state`, `progress`) |
-| POST | `/model/unload` | Unload VLM model from memory |
+| GET | `/config` | Runtime config: `annotationOnly`, `trainingEnabled`, `validationEnabled`, `device`, `devicePreference`, `availableDevices`, Jev provider/model |
+| POST | `/config/device` | Switch local inference device (`auto`, `cpu`, `cuda`, `mps`); unloads local models |
+| GET | `/model/events` | SSE stream: Jev, local fallback, SAM2, SAM3 status |
+| GET | `/model/status` | Primary provider status (`state`, `mode`, `model`, `progress`, `fallback`) |
+| POST | `/model/unload` | Release the local fallback model (Jev is remote) |
+| GET | `/model/download/status` | Download/init status for vlm, sam2, and sam3 |
+| POST | `/model/{kind}/download` | Pull from ModelScope and initialize (`kind`: `vlm`, `sam2`, `sam3`) |
 | GET | `/model/sam2/status` | SAM2 model status (`loaded`, `state`, `progress`) |
 | POST | `/model/sam2/unload` | Unload SAM2 model from memory |
 | GET | `/model/sam3/status` | SAM3 model status (`loaded`, `status`: `starting`/`loading`/`loaded`) |
@@ -124,7 +132,7 @@ The list endpoint returns lightweight boxes without `maskPolygon`. The detail en
   "id": "uuid",
   "imageName": "cat.jpg",
   "categories": ["cat"],
-  "modelName": "LocateAnything-3B",
+  "modelName": "Jev (~typesafe/jev-latest)",
   "modelType": "sam3",
   "imageWidth": 1024,
   "imageHeight": 768,
@@ -145,7 +153,7 @@ The list endpoint returns lightweight boxes without `maskPolygon`. The detail en
 }
 ```
 
-`modelType` values: `"vlm"` (VLM only), `"vlm+sam2"` (VLM with SAM2), `"sam3"` (SAM3 text-driven).
+`modelType` values: `"jev"` (Jev), `"jev+sam2"` (Jev with SAM2), `"jev+sam3"` (Jev with SAM3 multi-instance), `"sam3"` (SAM3 text-driven). Legacy records may contain `"vlm"` / `"vlm+sam2"`.
 ```
 
 ### Training Job Object
