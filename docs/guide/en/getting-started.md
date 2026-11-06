@@ -16,6 +16,56 @@ After launching, access:
 - **Frontend Interface**: http://localhost:5173
 - **API Documentation**: http://localhost:8000/docs
 
+### Configure the Jev API key
+
+Jev is TypeSafe's hosted System One API. A key is required for the default Jev provider. Choose one channel:
+
+**Option A — TypeSafe direct**
+
+1. Open <https://console.typesafe.ai/> and create an API key.
+2. Set the following in `backend/.env`:
+
+```env
+JEV_PROVIDER=typesafe
+TYPESAFE_API_KEY=your_typesafe_key
+TYPESAFE_JEV_MODEL=jev-1.14.0
+```
+
+**Option B — OpenRouter**
+
+1. Open <https://openrouter.ai/> and create an API key.
+2. Set the following in `backend/.env`:
+
+```env
+JEV_PROVIDER=openrouter
+OPENROUTER_API_KEY=your_openrouter_key
+OPENROUTER_JEV_MODEL=~typesafe/jev-latest
+```
+
+`JEV_MODEL` is a shared fallback; the provider-specific variable takes precedence.
+
+Create `backend/.env` first if it does not exist:
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+Restart the backend after changing the key:
+
+```bash
+./deploy.sh restart
+# or, for development mode:
+python3 cli.py stop && python3 cli.py start
+```
+
+Verify the configuration:
+
+- In the UI, the Jev model card shows `Ready · Remote API`.
+- `GET http://localhost:8000/api/v1/config` returns `"jevConfigured": true` and the selected `jevModel`.
+- If the key is missing or invalid, download the local VLM fallback with `python3 cli.py download --models=vlm`, or use the VLM/SAM3 tab.
+
+Keep API keys only in the backend environment. `backend/.env` is gitignored and must never be committed.
+
 ## 2. Upload Images or Videos
 
 ### Image Mode

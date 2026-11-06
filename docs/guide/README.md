@@ -2,6 +2,8 @@
 
 欢迎使用 Jev-AutoYOLO！本指南将帮助你快速上手并充分利用这个端到端的目标检测自动标注与训练平台。
 
+> **Jev API Key：** 获取与设置方式见 [配置 Jev API Key](./getting-started.md#配置-jev-api-key)。
+
 ## 指南目录
 
 - [快速开始](./getting-started.md) - 从安装到第一个检测结果的完整流程

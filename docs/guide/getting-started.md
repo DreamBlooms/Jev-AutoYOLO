@@ -16,6 +16,56 @@ start.bat
 - **前端界面**：http://localhost:5173
 - **API 文档**：http://localhost:8000/docs
 
+### 配置 Jev API Key
+
+Jev 是 TypeSafe 托管的 System One API，默认 Jev 渠道需要配置 API Key。二选一：
+
+**方式 A — 直连 TypeSafe**
+
+1. 打开 <https://console.typesafe.ai/> 创建 API Key。
+2. 在 `backend/.env` 中设置：
+
+```env
+JEV_PROVIDER=typesafe
+TYPESAFE_API_KEY=your_typesafe_key
+TYPESAFE_JEV_MODEL=jev-1.14.0
+```
+
+**方式 B — 通过 OpenRouter**
+
+1. 打开 <https://openrouter.ai/> 创建 API Key。
+2. 在 `backend/.env` 中设置：
+
+```env
+JEV_PROVIDER=openrouter
+OPENROUTER_API_KEY=your_openrouter_key
+OPENROUTER_JEV_MODEL=~typesafe/jev-latest
+```
+
+`JEV_MODEL` 是通用回退，渠道专用变量优先。
+
+如果还没有 `backend/.env`，先复制模板：
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+修改后重启后端：
+
+```bash
+./deploy.sh restart
+# 开发模式也可以：
+python3 cli.py stop && python3 cli.py start
+```
+
+验证配置：
+
+- 网页中 Jev 模型卡片显示 `已就绪 · 远程 API`
+- 请求 `GET http://localhost:8000/api/v1/config`，应返回 `"jevConfigured": true` 及对应 `jevModel`
+- Key 缺失或无效时，可下载本地回退模型：`python3 cli.py download --models=vlm`，或使用 VLM / SAM3 Tab
+
+API Key 只保存在后端环境变量中。`backend/.env` 已被 gitignore，严禁提交到仓库。
+
 ## 2. 上传图片或视频
 
 ### 图片模式

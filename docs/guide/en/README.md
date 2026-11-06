@@ -2,6 +2,8 @@
 
 Welcome to Jev-AutoYOLO! This guide will help you get started and make the most of this end-to-end object detection auto-labeling and training platform.
 
+> **Jev API key:** see [Configure the Jev API key](./getting-started.md#configure-the-jev-api-key) for TypeSafe/OpenRouter key setup.
+
 ## Guide Contents
 
 - [Getting Started](./getting-started.md) - Complete workflow from installation to your first detection
