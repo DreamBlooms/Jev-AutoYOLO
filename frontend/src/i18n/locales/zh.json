@@ -367,5 +367,8 @@
     "remote": "远程 API",
     "localFallback": "本地回退",
     "notConfigured": "未配置"
+  },
+  "app": {
+    "tagline": "自动标注 · YOLO 训练 · 本地部署"
   }
 }

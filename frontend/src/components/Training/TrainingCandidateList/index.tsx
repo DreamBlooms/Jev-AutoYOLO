@@ -37,7 +37,7 @@ export const TrainingCandidateList = memo(
     return (
       <div
         ref={candParentRef}
-        className="max-h-44 overflow-y-auto rounded border border-gray-100 pr-1"
+        className="max-h-44 overflow-y-auto rounded-xl border border-border bg-card p-1 shadow-sm ring-1 ring-border/50"
       >
         <div
           style={{

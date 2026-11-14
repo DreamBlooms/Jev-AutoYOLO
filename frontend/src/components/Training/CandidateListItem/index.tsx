@@ -37,7 +37,7 @@ export const CandidateListItem = memo(
         className="pb-1"
       >
         <label
-          className="flex items-center gap-2 text-xs py-1 cursor-pointer hover:bg-gray-50 rounded px-1 group h-full"
+          className="group flex h-full cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs transition-colors hover:bg-muted/50"
           onMouseEnter={(e) => {
             if (leaveTimerRef.current) {
               clearTimeout(leaveTimerRef.current);

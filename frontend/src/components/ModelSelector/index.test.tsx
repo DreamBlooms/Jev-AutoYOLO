@@ -28,9 +28,8 @@ describe("ModelSelector", () => {
   it("renders trained model option initially", () => {
     render(<ModelSelector {...defaultProps} />);
     
-    // Ant Design Radio inputs
-    const trainedRadio = screen.getByLabelText("validationSettings.trainedModel");
-    const uploadRadio = screen.getByLabelText("validationSettings.uploadModel");
+    const trainedRadio = screen.getByRole("button", { name: "validationSettings.trainedModel" });
+    const uploadRadio = screen.getByRole("button", { name: "validationSettings.uploadModel" });
     
     expect(trainedRadio).toBeInTheDocument();
     expect(uploadRadio).toBeInTheDocument();
@@ -40,7 +39,7 @@ describe("ModelSelector", () => {
     const onSourceChange = vi.fn();
     render(<ModelSelector {...defaultProps} onSourceChange={onSourceChange} />);
     
-    fireEvent.click(screen.getByLabelText("validationSettings.uploadModel"));
+    fireEvent.click(screen.getByRole("button", { name: "validationSettings.uploadModel" }));
     expect(onSourceChange).toHaveBeenCalledWith("upload");
   });
 

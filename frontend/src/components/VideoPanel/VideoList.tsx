@@ -1,4 +1,4 @@
-import { Popconfirm } from "antd";
+import { ConfirmAction } from "@/components/ConfirmAction";
 
 interface Props {
   items: VideoInfo[];
@@ -75,20 +75,19 @@ export function VideoList({
                       : ""}
                   </span>
                 </button>
-                <Popconfirm
+                <ConfirmAction
                   title={t("videoPanel.deleteConfirm")}
                   onConfirm={() => onDelete(v.id)}
-                  okText={t("common.delete")}
+                  confirmText={t("common.delete")}
                   cancelText={t("common.cancel")}
-                  okButtonProps={{ danger: true }}
                 >
                   <button
                     onClick={(e) => e.stopPropagation()}
-                    className="text-[10px] text-red-400 hover:text-red-600 flex-shrink-0 px-0.5"
+                    className="flex-shrink-0 px-0.5 text-[10px] text-red-400 hover:text-red-600"
                   >
                     {t("common.delete")}
                   </button>
-                </Popconfirm>
+                </ConfirmAction>
               </div>
             );
           })}
@@ -99,20 +98,19 @@ export function VideoList({
           <p className="text-xs text-center text-gray-300 py-1">{t("videoPanel.allVideosLoaded")}</p>
         ) : null}
       </div>
-      <Popconfirm
+      <ConfirmAction
         title={t("videoPanel.deleteAllConfirm", { count: items.length })}
         onConfirm={onDeleteAll}
-        okText={t("common.delete")}
+        confirmText={t("common.delete")}
         cancelText={t("common.cancel")}
-        okButtonProps={{ danger: true }}
       >
         <button
           type="button"
-          className="w-full rounded border border-red-200 bg-red-50 py-1 text-[10px] text-red-500 hover:bg-red-100 transition-colors"
+          className="w-full rounded border border-destructive/30 bg-destructive/10 py-1 text-[10px] text-destructive hover:bg-destructive/15"
         >
           {t("videoPanel.clearAllVideos")} ({items.length})
         </button>
-      </Popconfirm>
+      </ConfirmAction>
     </>
   );
 }

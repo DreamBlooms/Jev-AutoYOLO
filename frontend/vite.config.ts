@@ -14,7 +14,7 @@ export default defineConfig({
         "react",
         "ahooks",
         {
-          "react-hot-toast": ["toast"],
+          "sonner": ["toast"],
           "react-i18next": ["useTranslation"],
           "@tanstack/react-query": [
             "useQuery", "useMutation", "useQueryClient",

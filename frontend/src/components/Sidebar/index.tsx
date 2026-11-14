@@ -12,7 +12,6 @@ import { VideoPanel } from "@/components/VideoPanel";
 import { ValidationSettings } from "@/components/ValidationSettings";
 import { FilterPanel } from "@/components/FilterPanel";
 import { HistorySkeleton } from "@/components/LoadingSkeleton";
-import { SidebarHeader } from "./Header";
 import { DetectionControls } from "./DetectionControls";
 import type { Detection } from "@/types";
 import { useAppStore } from "@/store/useAppStore";
@@ -74,13 +73,11 @@ export function Sidebar({
 
   return (
     <aside
-      className="flex-shrink-0 border-r border-gray-200 bg-white flex flex-col gap-4 overflow-y-auto relative"
-      style={{ width: 440, padding: "1.25rem" }}
+      className="relative flex h-full w-full shrink-0 flex-col gap-3 overflow-y-auto border-b border-border bg-muted/20 p-3 text-foreground lg:w-[420px] lg:border-b-0 lg:border-r"
     >
-      <SidebarHeader />
-
+      <div className="space-y-3 rounded-xl border border-border bg-card p-3 shadow-sm">
       {/* Model selector */}
-      <div className="flex rounded-lg border border-gray-200/60 bg-gray-100/80 p-1 relative min-h-[36px] mb-2 shadow-inner">
+      <div className="relative flex min-h-9 rounded-lg bg-muted p-1">
         {(["jev", "vlm", "sam3"] as const).map((mode) => {
           const active =
             mode === "sam3" ? useSam3 : mode === "vlm" ? useVlm && !useSam3 : !useSam3 && !useVlm;
@@ -97,10 +94,10 @@ export function Sidebar({
                   setUseVlm(mode === "vlm");
                 }
               }}
-              className={`flex-1 text-xs font-semibold px-3 py-1 rounded-md transition-all duration-300 cursor-pointer relative z-10 ${
+              className={`relative z-10 flex-1 cursor-pointer rounded-md px-3 py-1 text-xs font-semibold transition-all ${
                 active
-                  ? "bg-white text-primary-600 shadow-sm ring-1 ring-black/5"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+                  ? "bg-background text-primary shadow-sm ring-1 ring-inset ring-border"
+                  : "text-muted-foreground hover:bg-background/60 hover:text-foreground"
               }`}
             >
               {mode === "sam3" ? "SAM3" : mode === "vlm" ? "VLM" : "Jev"}
@@ -111,17 +108,18 @@ export function Sidebar({
 
       {useSam3 ? <Sam3Status /> : <ModelStatus mode={useVlm ? "vlm" : "jev"} />}
       <DeviceSelector />
+      </div>
 
       {/* Mode tabs */}
-      <div className="flex border-b border-gray-200 mb-2">
+      <div className="mb-1 flex border-b border-border">
         {(["annotate", "validate"] as const).map((m) => (
           <button
             key={m}
             onClick={() => { setAppMode(m); setResult(null); setValidateVideoId(null); }}
             className={`flex-1 pb-3 pt-1 text-sm font-bold transition-all duration-200 relative text-center cursor-pointer ${
               appMode === m
-                ? "text-primary-600 border-b-2 border-primary-600 scale-[1.02]"
-                : "text-gray-400 hover:text-gray-600 border-b-2 border-transparent"
+                ? "border-b-2 border-primary text-primary"
+                : "border-b-2 border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             {{ annotate: t("common.annotate"), validate: t("common.validate") }[m]}
@@ -146,15 +144,15 @@ export function Sidebar({
 
       {/* Input mode: Image / Video */}
       <div>
-        <div className="flex gap-1 rounded bg-gray-100 p-0.5 mb-2">
+        <div className="mb-2 flex gap-1 rounded-lg bg-muted p-1">
           {(["image", "video"] as const).map((mode) => (
             <button
               key={mode}
               onClick={() => { setInputMode(mode); setFiles([]); setPreviewUrl(null); setBatch([]); }}
               className={`flex-1 rounded px-3 py-1.5 text-xs font-medium transition-colors ${
                 inputMode === mode
-                  ? "bg-white text-primary-600 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-background text-primary shadow-sm ring-1 ring-inset ring-border"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {{ image: t("common.image"), video: t("common.video") }[mode]}
@@ -194,7 +192,7 @@ export function Sidebar({
       )}
 
       {appMode === "validate" && inputMode === "video" && (
-        <div className="text-xs text-gray-400 text-center py-2">
+        <div className="py-2 text-center text-xs text-muted-foreground">
           {validateVideoId ? t("home.placeholderVideoRunning") : t("home.placeholderSelectVideo")}
         </div>
       )}
@@ -216,10 +214,10 @@ export function Sidebar({
         />
       )}
 
-      <hr className="border-gray-100" />
+      <hr className="border-border" />
 
       <div>
-        <p className="text-sm font-medium text-gray-600 mb-2">{t("common.history")}</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("common.history")}</p>
         <Suspense fallback={<HistorySkeleton />}>
           <ErrorBoundary>
             <HistoryList
@@ -234,13 +232,13 @@ export function Sidebar({
         </Suspense>
       </div>
 
-      <hr className="border-gray-100" />
+      <hr className="border-border" />
 
       {annotationOnly ? (
         <AnnotationExportPanel total={total} />
       ) : (
         <div>
-          <p className="text-sm font-medium text-gray-600 mb-2">{t("common.yoloTrain")}</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("common.yoloTrain")}</p>
           <TrainingPanel
             detections={allItems}
             total={total}

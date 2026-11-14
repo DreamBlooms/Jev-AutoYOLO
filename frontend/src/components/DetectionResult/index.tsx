@@ -1,4 +1,4 @@
-import { Dropdown } from "antd";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { getFileUrl } from "@/lib/cache";
 
 interface Props {
@@ -140,85 +140,78 @@ export function DetectionResult({
               {loading ? t("common.detecting") : t("detectionResult.redetect")}
             </button>
           )}
-          <Dropdown
-            disabled={!result || loading}
-            menu={{
-              items: [
-                { key: "yolo", label: "YOLO (.txt)" },
-                { key: "yolo-seg", label: "YOLO Segmentation" },
-                { key: "coco", label: "COCO (.json)" },
-                { key: "voc", label: "Pascal VOC (.xml)" },
-                { key: "createml", label: "CreateML (.json)" },
-              ],
-              onClick: async ({ key }) => {
-                if (!result) return;
-                if (key === "yolo") {
-                  downloadYoloTxt(
-                    result.boxes,
-                    categories,
-                    result.imageWidth,
-                    result.imageHeight,
-                    result.imageName,
-                  );
-                } else {
-                  const labels: Record<string, string> = {
-                    coco: "COCO",
-                    "yolo-seg": "YOLO_Seg",
-                    voc: "VOC",
-                    createml: "CreateML",
-                  };
-                  const blob = await exportBatch([result.id], key);
-                  downloadBlob(blob, `${labels[key] ?? key}_dataset.zip`);
-                }
-              },
-            }}
-            trigger={["click"]}
-          >
-            <button
-              type="button"
-              disabled={!result || loading}
-              className="rounded border border-primary-200 px-3 py-1 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {t("detectionResult.exportLabel")}
-            </button>
-          </Dropdown>
-          {!isValidation && (
-            <Dropdown
-              disabled={!result || loading}
-              menu={{
-                items: [
-                  { key: "yolo", label: "YOLO (.txt)" },
-                  { key: "yolo-seg", label: "YOLO Segmentation" },
-                  { key: "coco", label: "COCO (.json)" },
-                  { key: "voc", label: "Pascal VOC (.xml)" },
-                  { key: "createml", label: "CreateML (.json)" },
-                ],
-                onClick: async ({ key }) => {
-                  if (!result) return;
-                  const ids = batchResults.length > 1 ? batchResults.map((r) => r.id) : [result.id];
-                  const labels: Record<string, string> = {
-                    yolo: "YOLO",
-                    "yolo-seg": "YOLO_Seg",
-                    coco: "COCO",
-                    voc: "VOC",
-                    createml: "CreateML",
-                  };
-                  const blob = await exportBatch(ids, key);
-                  downloadBlob(blob, `${labels[key] ?? key}_dataset.zip`);
-                },
-              }}
-              trigger={["click"]}
-            >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <button
                 type="button"
                 disabled={!result || loading}
-                className="rounded bg-primary-600 px-3 py-1 text-xs font-medium text-white hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-lg border border-primary/30 px-3 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {batchResults.length > 1
-                  ? t("detectionResult.exportAllDataset", { count: batchResults.length })
-                  : t("detectionResult.exportDataset")}
+                {t("detectionResult.exportLabel")}
               </button>
-            </Dropdown>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {[
+                ["yolo", "YOLO (.txt)"],
+                ["yolo-seg", "YOLO Segmentation"],
+                ["coco", "COCO (.json)"],
+                ["voc", "Pascal VOC (.xml)"],
+                ["createml", "CreateML (.json)"],
+              ].map(([key, label]) => (
+                <DropdownMenuItem
+                  key={key}
+                  onClick={async () => {
+                    if (!result) return;
+                    if (key === "yolo") {
+                      downloadYoloTxt(result.boxes, categories, result.imageWidth, result.imageHeight, result.imageName);
+                    } else {
+                      const labels: Record<string, string> = { coco: "COCO", "yolo-seg": "YOLO_Seg", voc: "VOC", createml: "CreateML" };
+                      const blob = await exportBatch([result.id], key);
+                      downloadBlob(blob, `${labels[key] ?? key}_dataset.zip`);
+                    }
+                  }}
+                >
+                  {label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {!isValidation && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  disabled={!result || loading}
+                  className="rounded-lg bg-primary px-3 py-1 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {batchResults.length > 1
+                    ? t("detectionResult.exportAllDataset", { count: batchResults.length })
+                    : t("detectionResult.exportDataset")}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {[
+                  ["yolo", "YOLO (.txt)"],
+                  ["yolo-seg", "YOLO Segmentation"],
+                  ["coco", "COCO (.json)"],
+                  ["voc", "Pascal VOC (.xml)"],
+                  ["createml", "CreateML (.json)"],
+                ].map(([key, label]) => (
+                  <DropdownMenuItem
+                    key={key}
+                    onClick={async () => {
+                      if (!result) return;
+                      const ids = batchResults.length > 1 ? batchResults.map((r) => r.id) : [result.id];
+                      const labels: Record<string, string> = { yolo: "YOLO", "yolo-seg": "YOLO_Seg", coco: "COCO", voc: "VOC", createml: "CreateML" };
+                      const blob = await exportBatch(ids, key);
+                      downloadBlob(blob, `${labels[key] ?? key}_dataset.zip`);
+                    }}
+                  >
+                    {label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>

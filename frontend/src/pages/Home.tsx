@@ -94,10 +94,11 @@ export function Home() {
   };
 
   return (
-    <>
+    <div className="flex h-full min-h-0 flex-col lg:flex-row">
       <Sidebar {...sidebarProps} />
 
-      <main className="flex-1 flex flex-col overflow-y-auto p-6">
+      <main className="min-h-0 flex-1 overflow-y-auto p-4 lg:p-6">
+        <div className="flex min-h-full flex-col rounded-2xl border border-border bg-card p-4 shadow-sm">
         {validateVideoId && appMode === "validate" && (
           <VideoValidator
             key={validateRunKey}
@@ -114,7 +115,7 @@ export function Home() {
         )}
 
         {!validateVideoId && !displayResult && !previewUrl && (
-          <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+          <div className="grid min-h-[60vh] flex-1 place-items-center rounded-xl border border-dashed border-border bg-card/60 p-8 text-center text-sm text-muted-foreground">
             {t("home.placeholderDefault")}
           </div>
         )}
@@ -150,7 +151,8 @@ export function Home() {
             />
           </ErrorBoundary>
         )}
+        </div>
       </main>
-    </>
+    </div>
   );
 }

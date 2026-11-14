@@ -1,4 +1,5 @@
-import { Select, Radio } from "antd";
+import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
 
 interface Props {
   selectedJobId: string | null;
@@ -29,35 +30,42 @@ export function ModelSelector({
   const completedJobs = (jobs?.items ?? []).filter((j: TrainingJob) => j.status === "completed");
 
   return (
-    <div className="space-y-2">
-      <Radio.Group
-        value={modelSource}
-        onChange={(e) => onSourceChange(e.target.value)}
-        style={{ display: "flex", gap: "12px", marginBottom: "8px" }}
-      >
-        <Radio value="trained">{t("validationSettings.trainedModel")}</Radio>
-        <Radio value="upload">{t("validationSettings.uploadModel")}</Radio>
-      </Radio.Group>
+    <div className="space-y-2 rounded-lg border border-border bg-muted/40 p-2">
+      <div className="flex gap-2">
+        {(["trained", "upload"] as const).map((source) => (
+          <Button
+            key={source}
+            type="button"
+            size="sm"
+            variant={modelSource === source ? "default" : "outline"}
+            onClick={() => onSourceChange(source)}
+          >
+            {source === "trained" ? t("validationSettings.trainedModel") : t("validationSettings.uploadModel")}
+          </Button>
+        ))}
+      </div>
 
       {modelSource === "trained" && (
         <Select
-          placeholder={t("validationSettings.selectTrainedModel")}
-          value={selectedJobId}
-          onChange={onSelectJob}
-          options={completedJobs.map((j) => ({
-            value: j.id,
-            label: `${j.modelVariant} — ${new Date(j.completedAt || j.createdAt).toLocaleString(i18n.language.startsWith("zh") ? "zh-CN" : "en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}${j.metrics?.mAP50 != null ? ` (mAP50: ${(j.metrics.mAP50 as number).toFixed(2)})` : ""}`,
-          }))}
+          value={selectedJobId ?? ""}
+          onChange={(event) => onSelectJob(event.target.value || null)}
           className="w-full"
-        />
+        >
+          <option value="">{t("validationSettings.selectTrainedModel")}</option>
+          {completedJobs.map((j) => (
+            <option key={j.id} value={j.id}>
+              {`${j.modelVariant} — ${new Date(j.completedAt || j.createdAt).toLocaleString(i18n.language.startsWith("zh") ? "zh-CN" : "en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}${j.metrics?.mAP50 != null ? ` (mAP50: ${(j.metrics.mAP50 as number).toFixed(2)})` : ""}`}
+            </option>
+          ))}
+        </Select>
       )}
 
       {modelSource === "upload" && (
-        <label className="flex items-center justify-between rounded border border-dashed border-gray-300 px-2.5 py-2 cursor-pointer hover:border-green-400 transition-colors">
-          <span className="text-[11px] text-gray-400 truncate flex-1">
+        <label className="flex cursor-pointer items-center justify-between rounded-lg border border-dashed border-border px-3 py-2 transition-colors hover:border-primary/50">
+          <span className="flex-1 truncate text-xs text-muted-foreground">
             {externalFile ? externalFile.name : t("validationSettings.selectPtModel")}
           </span>
-          <span className="text-[10px] text-gray-400 flex-shrink-0 ml-2">
+          <span className="ml-2 flex-shrink-0 text-[10px] text-muted-foreground">
             {externalFile ? t("validationSettings.selected") : t("validationSettings.browse")}
           </span>
           <input

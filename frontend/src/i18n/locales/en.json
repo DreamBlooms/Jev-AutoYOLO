@@ -367,5 +367,8 @@
     "remote": "Remote API",
     "localFallback": "Local fallback",
     "notConfigured": "Not configured"
+  },
+  "app": {
+    "tagline": "Auto-labeling · YOLO training · Local deployment"
   }
 }

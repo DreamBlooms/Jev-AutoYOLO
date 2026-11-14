@@ -1,4 +1,4 @@
-import { Modal, Popconfirm, Popover } from "antd";
+import { HoverPopover, Modal, Popconfirm } from "@/components/ui/ant-compat";
 import { StatusBadge } from "../StatusBadge";
 
 export function TrainingJobItem({ job }: { job: TrainingJob }) {
@@ -39,7 +39,7 @@ export function TrainingJobItem({ job }: { job: TrainingJob }) {
   }, [job.id, job.status, qc]);
 
   return (
-    <div className="rounded border border-gray-100 p-2 text-xs">
+    <div className="rounded-xl border border-border bg-card p-3 text-xs shadow-sm ring-1 ring-border/50">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 min-w-0">
           <Popconfirm
@@ -195,7 +195,7 @@ export function TrainingJobItem({ job }: { job: TrainingJob }) {
                   const cMap = (job.metrics?.class_map as Record<string, string>) || job.classMap;
                   if (cMap && Object.values(cMap).length > 0) {
                     return (
-                      <Popover
+                      <HoverPopover
                         content={
                           <div className="max-w-[200px] flex flex-wrap gap-1">
                             {Object.values(cMap).map((cat) => (
@@ -215,7 +215,7 @@ export function TrainingJobItem({ job }: { job: TrainingJob }) {
                         <span className="cursor-pointer border-b border-dashed border-gray-300 text-primary-600">
                           {String(job.metrics?.num_classes ?? "-")}
                         </span>
-                      </Popover>
+                      </HoverPopover>
                     );
                   }
                   return String(job.metrics?.num_classes ?? "-");

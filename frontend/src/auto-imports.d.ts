@@ -8,14 +8,38 @@ export {}
 declare global {
   const API_BASE: typeof import('./lib/constants').API_BASE
   const Activity: typeof import('react').Activity
+  const Alert: typeof import('./components/ui/alert').Alert
+  const AlertDescription: typeof import('./components/ui/alert').AlertDescription
+  const AlertDialog: typeof import('./components/ui/alert-dialog').AlertDialog
+  const AlertDialogAction: typeof import('./components/ui/alert-dialog').AlertDialogAction
+  const AlertDialogCancel: typeof import('./components/ui/alert-dialog').AlertDialogCancel
+  const AlertDialogContent: typeof import('./components/ui/alert-dialog').AlertDialogContent
+  const AlertDialogDescription: typeof import('./components/ui/alert-dialog').AlertDialogDescription
+  const AlertDialogFooter: typeof import('./components/ui/alert-dialog').AlertDialogFooter
+  const AlertDialogHeader: typeof import('./components/ui/alert-dialog').AlertDialogHeader
+  const AlertDialogOverlay: typeof import('./components/ui/alert-dialog').AlertDialogOverlay
+  const AlertDialogPortal: typeof import('./components/ui/alert-dialog').AlertDialogPortal
+  const AlertDialogTitle: typeof import('./components/ui/alert-dialog').AlertDialogTitle
+  const AlertDialogTrigger: typeof import('./components/ui/alert-dialog').AlertDialogTrigger
+  const AlertTitle: typeof import('./components/ui/alert').AlertTitle
   const AnnotationExportPanel: typeof import('./components/AnnotationExportPanel/index').AnnotationExportPanel
   const BOX_COLORS: typeof import('./lib/constants').BOX_COLORS
+  const Badge: typeof import('./components/ui/badge').Badge
   const BatchProgress: typeof import('./components/BatchProgress/index').BatchProgress
+  const Button: typeof import('./components/ui/button').Button
   const CANVAS_MAX_H: typeof import('./lib/constants').CANVAS_MAX_H
   const CANVAS_MAX_W: typeof import('./lib/constants').CANVAS_MAX_W
   const CANVAS_MIN_BOX_SIZE: typeof import('./lib/constants').CANVAS_MIN_BOX_SIZE
   const CandidateListItem: typeof import('./components/Training/CandidateListItem/index').CandidateListItem
+  const Card: typeof import('./components/ui/card').Card
+  const CardContent: typeof import('./components/ui/card').CardContent
+  const CardDescription: typeof import('./components/ui/card').CardDescription
+  const CardFooter: typeof import('./components/ui/card').CardFooter
+  const CardHeader: typeof import('./components/ui/card').CardHeader
+  const CardTitle: typeof import('./components/ui/card').CardTitle
   const CategoryInput: typeof import('./components/CategoryInput/index').CategoryInput
+  const Checkbox: typeof import('./components/ui/checkbox').Checkbox
+  const ConfirmAction: typeof import('./components/ConfirmAction').ConfirmAction
   const DEFAULT_BATCH: typeof import('./lib/constants').DEFAULT_BATCH
   const DEFAULT_CONF: typeof import('./lib/constants').DEFAULT_CONF
   const DEFAULT_EPOCHS: typeof import('./lib/constants').DEFAULT_EPOCHS
@@ -29,6 +53,28 @@ declare global {
   const DetectionResult: typeof import('./components/DetectionResult/index').DetectionResult
   const DetectionSkeleton: typeof import('./components/LoadingSkeleton/index').DetectionSkeleton
   const DeviceSelector: typeof import('./components/DeviceSelector/index').DeviceSelector
+  const Dialog: typeof import('./components/ui/dialog').Dialog
+  const DialogClose: typeof import('./components/ui/dialog').DialogClose
+  const DialogContent: typeof import('./components/ui/dialog').DialogContent
+  const DialogDescription: typeof import('./components/ui/dialog').DialogDescription
+  const DialogFooter: typeof import('./components/ui/dialog').DialogFooter
+  const DialogHeader: typeof import('./components/ui/dialog').DialogHeader
+  const DialogTitle: typeof import('./components/ui/dialog').DialogTitle
+  const DialogTrigger: typeof import('./components/ui/dialog').DialogTrigger
+  const DropdownMenu: typeof import('./components/ui/dropdown-menu').DropdownMenu
+  const DropdownMenuCheckboxItem: typeof import('./components/ui/dropdown-menu').DropdownMenuCheckboxItem
+  const DropdownMenuContent: typeof import('./components/ui/dropdown-menu').DropdownMenuContent
+  const DropdownMenuGroup: typeof import('./components/ui/dropdown-menu').DropdownMenuGroup
+  const DropdownMenuItem: typeof import('./components/ui/dropdown-menu').DropdownMenuItem
+  const DropdownMenuLabel: typeof import('./components/ui/dropdown-menu').DropdownMenuLabel
+  const DropdownMenuPortal: typeof import('./components/ui/dropdown-menu').DropdownMenuPortal
+  const DropdownMenuRadioGroup: typeof import('./components/ui/dropdown-menu').DropdownMenuRadioGroup
+  const DropdownMenuSeparator: typeof import('./components/ui/dropdown-menu').DropdownMenuSeparator
+  const DropdownMenuSub: typeof import('./components/ui/dropdown-menu').DropdownMenuSub
+  const DropdownMenuSubContent: typeof import('./components/ui/dropdown-menu').DropdownMenuSubContent
+  const DropdownMenuSubTrigger: typeof import('./components/ui/dropdown-menu').DropdownMenuSubTrigger
+  const DropdownMenuTrigger: typeof import('./components/ui/dropdown-menu').DropdownMenuTrigger
+  const Empty: typeof import('./components/ui/empty').Empty
   const ErrorBoundary: typeof import('./components/ErrorBoundary/index').ErrorBoundary
   const ExtractionPanel: typeof import('./components/VideoPanel/ExtractionPanel').ExtractionPanel
   const FilterPanel: typeof import('./components/FilterPanel/index').FilterPanel
@@ -37,26 +83,52 @@ declare global {
   const HistoryListItem: typeof import('./components/HistoryListItem/index').HistoryListItem
   const HistorySkeleton: typeof import('./components/LoadingSkeleton/index').HistorySkeleton
   const Home: typeof import('./pages/Home').Home
+  const HoverPopover: typeof import('./components/ui/ant-compat').HoverPopover
   const HoverPreview: typeof import('./components/Training/HoverPreview/index').HoverPreview
   const ImageUploader: typeof import('./components/ImageUploader/index').ImageUploader
+  const Input: typeof import('./components/ui/input').Input
   const JevAdvancedSettings: typeof import('./components/JevAdvancedSettings/index').JevAdvancedSettings
   const JobHistoryList: typeof import('./components/Training/JobHistoryList/index').JobHistoryList
   const KeyframeGrid: typeof import('./components/KeyframeGrid/index').KeyframeGrid
+  const Label: typeof import('./components/ui/label').Label
   const Layout: typeof import('./components/Layout/index').Layout
   const MAX_UPLOAD_SIZE_MB: typeof import('./lib/constants').MAX_UPLOAD_SIZE_MB
+  const Modal: typeof import('./components/ui/ant-compat').Modal
   const ModelDownloadButton: typeof import('./components/ModelDownloadButton/index').ModelDownloadButton
   const ModelSelector: typeof import('./components/ModelSelector/index').ModelSelector
   const ModelStatus: typeof import('./components/ModelStatus/index').ModelStatus
+  const Popconfirm: typeof import('./components/ui/ant-compat').Popconfirm
+  const Popover: typeof import('./components/ui/popover').Popover
+  const PopoverAnchor: typeof import('./components/ui/popover').PopoverAnchor
+  const PopoverContent: typeof import('./components/ui/popover').PopoverContent
+  const PopoverTrigger: typeof import('./components/ui/popover').PopoverTrigger
+  const Progress: typeof import('./components/ui/progress').Progress
   const QueryClient: typeof import('@tanstack/react-query').QueryClient
   const QueryClientProvider: typeof import('@tanstack/react-query').QueryClientProvider
   const ResultTable: typeof import('./components/ResultTable/index').ResultTable
   const Sam3Status: typeof import('./components/Sam3Status/index').Sam3Status
+  const Select: typeof import('./components/ui/select').Select
+  const Separator: typeof import('./components/ui/separator').Separator
   const Sidebar: typeof import('./components/Sidebar/index').Sidebar
   const SidebarHeader: typeof import('./components/Sidebar/Header').SidebarHeader
+  const Skeleton: typeof import('./components/ui/skeleton').Skeleton
   const StatusBadge: typeof import('./components/Training/StatusBadge/index').StatusBadge
   const Suspense: typeof import('react').Suspense
+  const Switch: typeof import('./components/ui/switch').Switch
+  const Table: typeof import('./components/ui/table').Table
+  const TableBody: typeof import('./components/ui/table').TableBody
+  const TableCell: typeof import('./components/ui/table').TableCell
+  const TableHead: typeof import('./components/ui/table').TableHead
+  const TableHeader: typeof import('./components/ui/table').TableHeader
+  const TableRow: typeof import('./components/ui/table').TableRow
+  const Tabs: typeof import('./components/ui/tabs').Tabs
+  const TabsContent: typeof import('./components/ui/tabs').TabsContent
+  const TabsList: typeof import('./components/ui/tabs').TabsList
+  const TabsTrigger: typeof import('./components/ui/tabs').TabsTrigger
+  const Textarea: typeof import('./components/ui/textarea').Textarea
   const ThemeContext: typeof import('./hooks/useTheme').ThemeContext
   const ThemeProvider: typeof import('./components/ThemeProvider/index').ThemeProvider
+  const Toaster: typeof import('./components/ui/sonner').Toaster
   const TrainingCandidateList: typeof import('./components/Training/TrainingCandidateList/index').TrainingCandidateList
   const TrainingJobItem: typeof import('./components/Training/TrainingJobItem/index').TrainingJobItem
   const TrainingPanel: typeof import('./components/TrainingPanel/index').TrainingPanel
@@ -69,13 +141,16 @@ declare global {
   const VideoValidator: typeof import('./components/VideoValidator/index').VideoValidator
   const addBox: typeof import('./services/api').addBox
   const applyFilter: typeof import('./lib/filterBoxes').applyFilter
+  const badgeVariants: typeof import('./components/ui/badge').badgeVariants
   const batchFileMap: typeof import('./lib/cache').batchFileMap
+  const buttonVariants: typeof import('./components/ui/button').buttonVariants
   const cache: typeof import('react').cache
   const cacheSignal: typeof import('react').cacheSignal
   const cancelImport: typeof import('./services/api').cancelImport
   const cancelTrainingJob: typeof import('./services/api').cancelTrainingJob
   const chartUrl: typeof import('./services/api').chartUrl
   const checkSam3Health: typeof import('./services/api').checkSam3Health
+  const cn: typeof import('./lib/utils').cn
   const createContext: typeof import('react').createContext
   const createRef: typeof import('react').createRef
   const deleteAllVideos: typeof import('./services/api').deleteAllVideos
@@ -125,7 +200,7 @@ declare global {
   const setInferenceDevice: typeof import('./services/api').setInferenceDevice
   const startTraining: typeof import('./services/api').startTraining
   const startTransition: typeof import('react').startTransition
-  const toast: typeof import('react-hot-toast').toast
+  const toast: typeof import('sonner').toast
   const tokenCache: typeof import('./lib/constants').tokenCache
   const unloadModel: typeof import('./services/api').unloadModel
   const unloadSam2: typeof import('./services/api').unloadSam2

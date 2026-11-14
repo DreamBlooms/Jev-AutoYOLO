@@ -1,4 +1,3 @@
-import { Image } from "antd";
 
 interface Props {
   method: "scene" | "motion" | "interval";
@@ -259,8 +258,7 @@ function KeyframeStrip({
           </button>
         </div>
       </div>
-      <Image.PreviewGroup>
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
+      <div className="flex gap-1.5 overflow-x-auto pb-1">
           {selectedVideo.keyframes.map((kf) => {
             const sel = selectedFrameIds.has(kf.id);
             return (
@@ -272,11 +270,10 @@ function KeyframeStrip({
                 }`}
               >
                 <div className="relative">
-                  <Image
+                  <img
                     src={keyframeImageUrl(selectedVideo.id, kf.id)}
                     alt={`#${kf.frameNumber}`}
                     className="w-full h-14 object-cover"
-                    preview={{ mask: t("videoPanel.clickToView") }}
                     style={{ display: "block" }}
                   />
                   {sel && (
@@ -294,7 +291,6 @@ function KeyframeStrip({
             );
           })}
         </div>
-      </Image.PreviewGroup>
     </>
   );
 }

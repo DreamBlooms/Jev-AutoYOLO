@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { setInferenceDevice } from "@/services/api";
 import { useAppStore } from "@/store/useAppStore";
 

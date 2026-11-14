@@ -25,7 +25,7 @@ export function ValidationSettings({
 }: Props) {
   const { t } = useTranslation();
   return (
-    <div className="rounded border border-green-200 p-2.5 text-xs space-y-3">
+    <div className="rounded-xl border border-green-200 bg-muted/30 p-2.5 text-xs space-y-3 shadow-sm">
       <ModelSelector
         selectedJobId={selectedJobId}
         onSelectJob={onSelectJob}

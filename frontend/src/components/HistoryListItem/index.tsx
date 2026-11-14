@@ -1,4 +1,5 @@
-import { Dropdown, Popconfirm } from "antd";
+import { ConfirmAction } from "@/components/ConfirmAction";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { VirtualItem } from "@tanstack/react-virtual";
 
 interface HistoryListItemProps {
@@ -38,7 +39,7 @@ export const HistoryListItem = memo(
       >
         <div
           onClick={() => onSelect(det)}
-          className="rounded border border-gray-100 p-2 hover:bg-gray-50 cursor-pointer transition-colors h-full"
+          className="h-full cursor-pointer rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/50"
         >
           <div className="flex gap-2">
             <img
@@ -98,56 +99,62 @@ export const HistoryListItem = memo(
                 {t("trainingPanel.targetsCount", { count: det.boxes.length })}
               </p>
               <div className="flex gap-2 mt-1.5">
-                <Dropdown
-                  menu={{
-                    items: [
-                      { key: "yolo", label: "YOLO (.txt)" },
-                      { key: "yolo-seg", label: "YOLO Segmentation" },
-                      { key: "coco", label: "COCO (.json)" },
-                      { key: "voc", label: "Pascal VOC (.xml)" },
-                      { key: "createml", label: "CreateML (.json)" },
-                    ],
-                    onClick: async ({ key }) => {
-                      const labels: Record<string, string> = {
-                        yolo: "YOLO",
-                        "yolo-seg": "YOLO_Seg",
-                        coco: "COCO",
-                        voc: "VOC",
-                        createml: "CreateML",
-                      };
-                      try {
-                        const blob = await exportBatch([det.id], key);
-                        downloadBlob(blob, `${labels[key] ?? key}_dataset.zip`);
-                      } catch {
-                        /* ignore */
-                      }
-                    },
-                  }}
-                  trigger={["click"]}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      {t("common.export")}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    {[
+                      ["yolo", "YOLO (.txt)"],
+                      ["yolo-seg", "YOLO Segmentation"],
+                      ["coco", "COCO (.json)"],
+                      ["voc", "Pascal VOC (.xml)"],
+                      ["createml", "CreateML (.json)"],
+                    ].map(([key, label]) => (
+                      <DropdownMenuItem
+                        key={key}
+                        onClick={async () => {
+                          const labels: Record<string, string> = {
+                            yolo: "YOLO",
+                            "yolo-seg": "YOLO_Seg",
+                            coco: "COCO",
+                            voc: "VOC",
+                            createml: "CreateML",
+                          };
+                          try {
+                            const blob = await exportBatch([det.id], key);
+                            downloadBlob(blob, `${labels[key] ?? key}_dataset.zip`);
+                          } catch {
+                            /* ignore */
+                          }
+                        }}
+                      >
+                        {label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <ConfirmAction
+                  title={t("historyList.deleteConfirm")}
+                  onConfirm={() => onDelete(det.id)}
+                  confirmText={t("common.delete")}
+                  cancelText={t("common.cancel")}
                 >
                   <button
                     type="button"
                     onClick={(e) => e.stopPropagation()}
-                    className="text-xs text-primary-600 hover:underline"
-                  >
-                    {t("common.export")}
-                  </button>
-                </Dropdown>
-                <Popconfirm
-                  title={t("historyList.deleteConfirm")}
-                  onConfirm={() => onDelete(det.id)}
-                  okText={t("common.delete")}
-                  cancelText={t("common.cancel")}
-                  okButtonProps={{ danger: true }}
-                >
-                  <button
-                    onClick={(e) => e.stopPropagation()}
                     disabled={isDeleting}
-                    className="text-xs text-red-500 hover:underline disabled:opacity-50"
+                    className="text-xs text-destructive hover:underline disabled:opacity-50"
                   >
                     {t("common.delete")}
                   </button>
-                </Popconfirm>
+                </ConfirmAction>
               </div>
             </div>
           </div>

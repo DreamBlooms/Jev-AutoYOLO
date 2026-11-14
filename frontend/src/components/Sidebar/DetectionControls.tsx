@@ -1,3 +1,8 @@
+import { Loader2 } from "lucide-react";
+
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAppStore } from "@/store/useAppStore";
 
 interface Props {
@@ -37,7 +42,7 @@ export function DetectionControls({
   return (
     <>
       <div>
-        <p className="text-sm font-medium text-gray-600 mb-2">{t("common.categories")}</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("common.categories")}</p>
         <CategoryInput
           categories={categories}
           onChange={setCategories}
@@ -48,13 +53,8 @@ export function DetectionControls({
 
       {appMode === "annotate" && !useSam3 && (
         <>
-          <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={useSam2}
-              onChange={(e) => setUseSam2(e.target.checked)}
-              className="h-3.5 w-3.5 rounded border-gray-300 text-primary-600"
-            />
+          <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+            <Checkbox checked={useSam2} onCheckedChange={(value) => setUseSam2(value === true)} />
             {t("home.useSam2")}
           </label>
           {useSam2 && (
@@ -72,13 +72,8 @@ export function DetectionControls({
       )}
       {appMode === "annotate" && useSam3 && (
         <>
-          <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={useSam3Seg}
-              onChange={(e) => setUseSam3Seg(e.target.checked)}
-              className="h-3.5 w-3.5 rounded border-gray-300 text-primary-600"
-            />
+          <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+            <Checkbox checked={useSam3Seg} onCheckedChange={(value) => setUseSam3Seg(value === true)} />
             {t("home.useSam3Seg")}
           </label>
           <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -103,31 +98,25 @@ export function DetectionControls({
       )}
 
       {isTraining && (
-        <div className="flex items-center gap-2 rounded bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">
-          <span className="inline-block h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-          {t("trainingPanel.trainingInProgress")}
-        </div>
+        <Alert variant="warning"><span className="inline-block size-2 animate-pulse rounded-full bg-amber-500" /><AlertTitle>{t("trainingPanel.trainingInProgress")}</AlertTitle></Alert>
       )}
 
-      <button
-        type="button"
+      <Button
+        size="lg"
         disabled={
           isTraining || loading || filesCount === 0
           || (appMode !== "validate" && categories.length === 0)
         }
         onClick={onDetect}
-        className="w-full rounded bg-primary-600 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+        className="w-full"
       >
         {loading ? (
-          <span className="inline-flex items-center gap-2">
-            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
+          <>
+            <Loader2 className="animate-spin" />
             {batchProgress.total > 1
               ? t("home.detectingCount", { current: batchProgress.current, total: batchProgress.total })
               : t("home.detectingDefault")}
-          </span>
+          </>
         ) : appMode === "validate" ? (
           t("home.yoloValidation")
         ) : filesCount > 1 ? (
@@ -135,7 +124,7 @@ export function DetectionControls({
         ) : (
           t("home.detectBtnImage")
         )}
-      </button>
+      </Button>
     </>
   );
 }

@@ -1,4 +1,7 @@
-import { Select, InputNumber, Dropdown } from "antd";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { useAppStore } from "@/store/useAppStore";
 import { JobHistoryList } from "@/components/Training/JobHistoryList";
 
@@ -235,32 +238,38 @@ export function TrainingPanel({ detections, total, hasNextPage, isFetchingNextPa
             </button>
           )}
           {selectedCount > 0 && (
-            <Dropdown
-              menu={{
-                items: [
-                  { key: "yolo", label: "YOLO (.txt)" },
-                  { key: "yolo-seg", label: "YOLO Segmentation" },
-                  { key: "coco", label: "COCO (.json)" },
-                  { key: "voc", label: "Pascal VOC (.xml)" },
-                  { key: "createml", label: "CreateML (.json)" },
-                ],
-                onClick: ({ key }) => {
-                  const labels: Record<string, string> = {
-                    yolo: "YOLO",
-                    "yolo-seg": "YOLO_Seg",
-                    coco: "COCO",
-                    voc: "VOC",
-                    createml: "CreateML",
-                  };
-                  handleDownloadDataset(key, labels[key] ?? key);
-                },
-              }}
-              trigger={["click"]}
-            >
-              <button type="button" className="text-xs text-primary-600 hover:underline">
-                {t("trainingPanel.downloadDataset")}
-              </button>
-            </Dropdown>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button type="button" className="text-xs text-primary hover:underline">
+                  {t("trainingPanel.downloadDataset")}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {[
+                  ["yolo", "YOLO (.txt)"],
+                  ["yolo-seg", "YOLO Segmentation"],
+                  ["coco", "COCO (.json)"],
+                  ["voc", "Pascal VOC (.xml)"],
+                  ["createml", "CreateML (.json)"],
+                ].map(([key, label]) => (
+                  <DropdownMenuItem
+                    key={key}
+                    onClick={() => {
+                      const labels: Record<string, string> = {
+                        yolo: "YOLO",
+                        "yolo-seg": "YOLO_Seg",
+                        coco: "COCO",
+                        voc: "VOC",
+                        createml: "CreateML",
+                      };
+                      handleDownloadDataset(key, labels[key] ?? key);
+                    }}
+                  >
+                    {label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
           <button
             type="button"
@@ -312,110 +321,67 @@ export function TrainingPanel({ detections, total, hasNextPage, isFetchingNextPa
       {/* Training params */}
       <div className="grid grid-cols-2 gap-3 training-params">
         <div>
-          <label className="text-xs text-gray-500 mb-1 block">{t("trainingPanel.series")}</label>
-          <Select
-            value={series}
-            onChange={setSeries}
-            options={Object.entries(seriesOptions).map(([key, s]) => ({
-              value: key,
-              label: s.label,
-            }))}
-            className="w-full"
-            showSearch
-            filterOption={(input, option) =>
-              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-            }
-          />
+          <label className="text-xs mb-1 block text-xs text-muted-foreground">{t("trainingPanel.series")}</label>
+          <Select value={series} onChange={(event) => setSeries(event.target.value)} className="w-full">
+            {Object.entries(seriesOptions).map(([key, item]) => <option key={key} value={key}>{item.label}</option>)}
+          </Select>
         </div>
         <div>
-          <label className="text-xs text-gray-500 mb-1 block">
+          <label className="text-xs mb-1 block text-xs text-muted-foreground">
             {t("trainingPanel.specification")}
           </label>
-          <Select
-            value={currentVariant}
-            onChange={setVariant}
-            options={Object.entries(variantOptions).map(([key, label]) => ({ value: key, label }))}
-            className="w-full"
-            showSearch
-            filterOption={(input, option) =>
-              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-            }
-          />
+          <Select value={currentVariant} onChange={(event) => setVariant(event.target.value)} className="w-full">
+            {Object.entries(variantOptions).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+          </Select>
         </div>
         <div>
-          <label className="text-xs text-gray-500 mb-1 block">{t("trainingPanel.epochs")}</label>
-          <InputNumber
-            min={1}
-            max={9999}
-            value={epochs}
-            onChange={(v) => setEpochs(v ?? DEFAULT_EPOCHS)}
-            className="w-full"
-          />
+          <label className="text-xs mb-1 block text-xs text-muted-foreground">{t("trainingPanel.epochs")}</label>
+          <Input type="number" min={1} max={9999} value={epochs} onChange={(event) => setEpochs(Number(event.target.value) || DEFAULT_EPOCHS)} className="w-full" />
         </div>
         <div>
-          <label className="text-xs text-gray-500 mb-1 block">{t("trainingPanel.imgsz")}</label>
-          <InputNumber
-            min={128}
-            max={4096}
-            step={64}
-            value={imgsz}
-            onChange={(v) => setImgsz(v ?? DEFAULT_IMGSZ)}
-            className="w-full"
-          />
+          <label className="text-xs mb-1 block text-xs text-muted-foreground">{t("trainingPanel.imgsz")}</label>
+          <Input type="number" min={128} max={4096} step={64} value={imgsz} onChange={(event) => setImgsz(Number(event.target.value) || DEFAULT_IMGSZ)} className="w-full" />
         </div>
         <div>
-          <label className="text-xs text-gray-500 mb-1 block">{t("trainingPanel.batch")}</label>
-          <InputNumber
-            min={1}
-            max={256}
-            value={batch}
-            onChange={(v) => setBatch(v ?? DEFAULT_BATCH)}
-            className="w-full"
-          />
+          <label className="text-xs mb-1 block text-xs text-muted-foreground">{t("trainingPanel.batch")}</label>
+          <Input type="number" min={1} max={256} value={batch} onChange={(event) => setBatch(Number(event.target.value) || DEFAULT_BATCH)} className="w-full" />
         </div>
         <div>
-          <label className="text-xs text-gray-500 mb-1 block">
+          <label className="text-xs mb-1 block text-xs text-muted-foreground">
             {t("trainingPanel.splitRatio", {
               test: splitPreset.split("/").length >= 3 ? t("trainingPanel.splitRatioTest") : "",
             })}
           </label>
-          <Select
-            value={splitPreset}
-            onChange={setSplitPreset}
-            options={Object.keys(splitPresets).map((k) => ({ value: k, label: k }))}
-            className="w-full"
-          />
+          <Select value={splitPreset} onChange={(event) => setSplitPreset(event.target.value)} className="w-full">
+            {Object.keys(splitPresets).map((key) => <option key={key} value={key}>{key}</option>)}
+          </Select>
         </div>
         <div className="col-span-2">
-          <label className="text-xs text-gray-500 mb-1 block">{t("trainingPanel.taskType")}</label>
-          <Select
-            value={taskType}
-            onChange={setTaskType}
-            options={[
-              { value: "detect", label: t("trainingPanel.taskDetect") },
-              { value: "segment", label: t("trainingPanel.taskSegment") },
-              { value: "classify", label: t("trainingPanel.taskClassify"), disabled: true },
-              { value: "pose", label: t("trainingPanel.taskPose"), disabled: true },
-              { value: "obb", label: t("trainingPanel.taskObb"), disabled: true },
-            ]}
-            className="w-full"
-          />
+          <label className="text-xs mb-1 block text-xs text-muted-foreground">{t("trainingPanel.taskType")}</label>
+          <Select value={taskType} onChange={(event) => setTaskType(event.target.value)} className="w-full">
+            <option value="detect">{t("trainingPanel.taskDetect")}</option>
+            <option value="segment">{t("trainingPanel.taskSegment")}</option>
+            <option value="classify" disabled>{t("trainingPanel.taskClassify")}</option>
+            <option value="pose" disabled>{t("trainingPanel.taskPose")}</option>
+            <option value="obb" disabled>{t("trainingPanel.taskObb")}</option>
+          </Select>
         </div>
       </div>
 
       {/* Train button */}
-      <button
+      <Button
         type="button"
         disabled={trainMut.isPending || selectedCount === 0}
         onClick={handleTrain}
-        className="w-full rounded bg-green-600 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+        className="w-full"
+        size="lg"
       >
         {trainMut.isPending
           ? t("trainingPanel.starting")
           : isTraining
             ? t("trainingPanel.addToQueue", { count: selectedCount })
             : t("trainingPanel.startTrainCount", { count: selectedCount })}
-      </button>
+      </Button>
 
       {/* Job history */}
       {allJobs.length > 0 && (

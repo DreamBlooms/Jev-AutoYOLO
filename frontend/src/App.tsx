@@ -1,16 +1,13 @@
 import { useEffect } from "react";
-import { ConfigProvider, theme } from "antd";
 import { Routes, Route } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Layout } from "./components/Layout";
 import { Home } from "./pages/Home";
-import { useTheme } from "./hooks/useTheme";
 import { useAppStore } from "./store/useAppStore";
 import { getAppConfig } from "./services/api";
 
 export default function App() {
-  const { isDark } = useTheme();
   const setAnnotationOnly = useAppStore((s) => s.setAnnotationOnly);
   const setGpuAvailable = useAppStore((s) => s.setGpuAvailable);
   const setConfigLoaded = useAppStore((s) => s.setConfigLoaded);
@@ -47,15 +44,8 @@ export default function App() {
   ]);
 
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: isDark ? theme.darkAlgorithm : undefined,
-        token: {
-          colorPrimary: "#76b900",
-        },
-      }}
-    >
-      <Toaster position="top-center" />
+    <>
+      <Toaster position="top-center" richColors closeButton />
       <ErrorBoundary>
         <Routes>
           <Route element={<Layout />}>
@@ -63,6 +53,6 @@ export default function App() {
           </Route>
         </Routes>
       </ErrorBoundary>
-    </ConfigProvider>
+    </>
   );
 }

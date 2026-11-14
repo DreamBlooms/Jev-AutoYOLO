@@ -1,4 +1,6 @@
-import { Select, Modal } from "antd";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select } from "@/components/ui/select";
 
 const FORMATS = [
   { value: "yolo", label: "YOLO" },
@@ -185,24 +187,16 @@ export function DatasetImportModal({ open, onClose }: Props) {
   };
 
   return (
-    <Modal
-      open={open}
-      onCancel={handleClose}
-      footer={null}
-      title={t("datasetImport.title")}
-      mask={{ closable: !isBusy }}
-    >
-      <div className="space-y-4 py-2">
+    <Dialog open={open} onOpenChange={(next) => { if (!next) handleClose(); }}>
+      <DialogContent className="max-w-xl">
+        <DialogHeader><DialogTitle>{t("datasetImport.title")}</DialogTitle></DialogHeader>
+        <div className="space-y-4">
         {/* Format selector */}
         <div>
           <label className="text-xs text-gray-500 mb-1 block">{t("datasetImport.format")}</label>
-          <Select
-            value={fmt}
-            onChange={setFmt}
-            options={FORMATS}
-            className="w-full"
-            disabled={isBusy}
-          />
+          <Select value={fmt} onChange={(event) => setFmt(event.target.value)} className="w-full" disabled={isBusy}>
+            {FORMATS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+          </Select>
         </div>
 
         {/* Drop zone */}
@@ -270,23 +264,15 @@ export function DatasetImportModal({ open, onClose }: Props) {
         {/* Actions */}
         <div className="flex justify-end gap-2">
           {isBusy ? (
-            <button type="button" onClick={handleCancel}
-              className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
-              {t("common.cancel")}
-            </button>
+            <Button type="button" variant="outline" onClick={handleCancel}>{t("common.cancel")}</Button>
           ) : status === "completed" || status === "failed" ? (
-            <button type="button" onClick={handleClose}
-              className="rounded bg-primary-600 px-4 py-2 text-sm text-white hover:bg-primary-700 transition-colors">
-              {t("common.close")}
-            </button>
+            <Button type="button" onClick={handleClose}>{t("common.close")}</Button>
           ) : (
-            <button type="button" disabled={!file} onClick={startUpload}
-              className="rounded bg-primary-600 px-4 py-2 text-sm text-white hover:bg-primary-700 disabled:opacity-50 transition-colors">
-              {t("datasetImport.import")}
-            </button>
+            <Button type="button" disabled={!file} onClick={startUpload}>{t("datasetImport.import")}</Button>
           )}
         </div>
-      </div>
-    </Modal>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useAppStore } from "@/store/useAppStore";

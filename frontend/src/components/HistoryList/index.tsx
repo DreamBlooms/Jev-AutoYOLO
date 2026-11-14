@@ -174,7 +174,7 @@ export function HistoryList({
       {filtered.length === 0 ? (
         <p className="py-4 text-xs text-gray-400 text-center">{t("historyList.noMatchRecords")}</p>
       ) : (
-        <div ref={parentRef} className="max-h-64 overflow-y-auto pr-1">
+        <div ref={parentRef} className="max-h-64 overflow-y-auto rounded-xl border border-border bg-card p-2 shadow-sm ring-1 ring-border/50">
           <div
             style={{
               height: `${rowVirtualizer.getTotalSize()}px`,

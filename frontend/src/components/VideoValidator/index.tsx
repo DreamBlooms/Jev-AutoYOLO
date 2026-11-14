@@ -1,4 +1,4 @@
-import { PlayCircleOutlined, ReloadOutlined } from "@ant-design/icons";
+import { PlayCircle, RotateCw } from "lucide-react";
 
 interface Props {
   videoId: string;
@@ -195,7 +195,7 @@ export function VideoValidator({ videoId, jobId, modelFile, conf, iou }: Props) 
         )}
         {paused && !loading && !ended && (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-sm text-gray-200 bg-black/40 gap-2 backdrop-blur-[1.5px] z-10">
-            <PlayCircleOutlined className="text-white drop-shadow" style={{ fontSize: "40px" }} />
+            <PlayCircle className="text-white drop-shadow" style={{ fontSize: "40px" }} />
             <span className="text-white font-medium drop-shadow text-xs">
               {t("videoValidator.clickToResume")}
             </span>
@@ -203,7 +203,7 @@ export function VideoValidator({ videoId, jobId, modelFile, conf, iou }: Props) 
         )}
         {ended && !loading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-sm text-gray-200 bg-black/50 gap-2 backdrop-blur-[1.5px] z-10">
-            <ReloadOutlined
+            <RotateCw
               className="text-white drop-shadow animate-pulse"
               style={{ fontSize: "40px" }}
             />
@@ -224,7 +224,7 @@ export function VideoValidator({ videoId, jobId, modelFile, conf, iou }: Props) 
           }}
           className="text-xs text-green-600 hover:text-green-700 font-medium flex items-center gap-1 transition-all px-2.5 py-1.5 rounded-md hover:bg-green-50/50 border border-green-200/60 cursor-pointer active:scale-95 bg-white shadow-sm"
         >
-          <ReloadOutlined className="text-xs" />
+          <RotateCw className="text-xs" />
           {t("videoValidator.rerunValidation")}
         </button>
       </div>

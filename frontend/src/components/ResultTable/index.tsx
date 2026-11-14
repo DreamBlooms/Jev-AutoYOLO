@@ -1,4 +1,4 @@
-import { Popconfirm } from "antd";
+import { ConfirmAction } from "@/components/ConfirmAction";
 
 interface Props {
   boxes: BBox[];
@@ -97,12 +97,11 @@ export function ResultTable({ boxes, hiddenIndices, onToggleVisibility, onDelete
               </td>
               {onDelete && (
                 <td className="px-2 py-2">
-                  <Popconfirm
+                  <ConfirmAction
                     title={t("resultTable.deleteBoxConfirm")}
                     onConfirm={() => onDelete(box.id)}
-                    okText={t("common.delete")}
+                    confirmText={t("common.delete")}
                     cancelText={t("common.cancel")}
-                    okButtonProps={{ danger: true }}
                   >
                     <button
                       className="text-xs text-red-400 hover:text-red-600 transition-colors"
@@ -110,7 +109,7 @@ export function ResultTable({ boxes, hiddenIndices, onToggleVisibility, onDelete
                     >
                       ✕
                     </button>
-                  </Popconfirm>
+                  </ConfirmAction>
                 </td>
               )}
             </tr>
