@@ -98,7 +98,7 @@ flowchart LR
 **安装：**
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/DreamBlooms/Jev-AutoYOLO
 cd Jev-AutoYOLO
 
 # 后端
