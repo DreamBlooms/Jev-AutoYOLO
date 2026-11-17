@@ -30,6 +30,12 @@ class DetectionStatus(enum.StrEnum):
     failed = "failed"
 
 
+class ReviewStatus(enum.StrEnum):
+    pending = "pending"
+    accepted = "accepted"
+    rejected = "rejected"
+
+
 class Detection(Base):
     __tablename__ = "detections"
 
@@ -37,6 +43,9 @@ class Detection(Base):
         Uuid(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4,
+    )
+    project_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid(as_uuid=True), ForeignKey("projects.id", ondelete="SET NULL"), nullable=True
     )
     image_path: Mapped[str] = mapped_column(Text, nullable=False)
     image_name: Mapped[str] = mapped_column(String(512), nullable=False)
@@ -54,6 +63,10 @@ class Detection(Base):
         Enum(DetectionStatus),
         default=DetectionStatus.completed,
     )
+    review_status: Mapped[ReviewStatus] = mapped_column(
+        Enum(ReviewStatus),
+        default=ReviewStatus.pending,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
@@ -68,6 +81,8 @@ class Detection(Base):
     __table_args__ = (
         Index("ix_detections_created_at", "created_at"),
         Index("ix_detections_status", "status"),
+        Index("ix_detections_project_id", "project_id"),
+        Index("ix_detections_review_status", "review_status"),
     )
 
 

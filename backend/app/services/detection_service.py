@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+import uuid
 
 from ..core.exceptions import AppError
 from ..models.detection import Detection, ModelType
@@ -20,6 +21,7 @@ async def process_detection(
     categories: list[str],
     params: DetectionParams,
     repo: DetectionRepository,
+    project_id: uuid.UUID | None = None,
 ) -> Detection:
     """Orchestrates model offloading, inference strategy, and database persistence."""
 
@@ -79,6 +81,7 @@ async def process_detection(
         image_height=result.img_h,
         categories=categories,
         model_name=result.model_name or "Jev",
+        project_id=project_id,
     )
     detection.model_type = model_type
     detection.elapsed_ms = int((time.perf_counter() - t0) * 1000)

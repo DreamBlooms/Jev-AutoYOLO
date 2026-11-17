@@ -12,11 +12,19 @@ from fastapi.responses import FileResponse, StreamingResponse
 
 from ...core.config import settings
 from ...core.exceptions import AppError, NotFoundError
-from ...models.detection import FilterMode
+from ...models.detection import FilterMode, ReviewStatus
 from ...repositories.detection import DetectionRepository
 from ...schemas.common import APIResponse, BaseSchema
-from ...schemas.detection import DetectionListItem, DetectionOut, DetectionParams
+from ...schemas.detection import (
+    DetectionBoxOut,
+    DetectionListItem,
+    DetectionOut,
+    DetectionParams,
+    RedetectIn,
+    ReviewStatusIn,
+)
 from ...services import model_manager
+from ...services.projects import resolve_project_id
 from ...services.detection_service import process_detection
 from ...services.jev_service import get_status as get_jev_status
 from ...services.locate_anything import (
@@ -46,6 +54,7 @@ def _save_upload(file: UploadFile) -> tuple[str, str]:
 async def create_detection(
     file: UploadFile = File(...),
     categories: str = Form(...),
+    project_id: str = Form(""),
     extra_state: str = Form(""),
     extra_instructions: str = Form(""),
     category_instructions: str = Form(""),
@@ -61,6 +70,11 @@ async def create_detection(
 ) -> APIResponse:
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(400, detail="File must be an image")
+
+    try:
+        project_uuid = resolve_project_id(repo.db, project_id)
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
 
     file.file.seek(0, 2)
     size_mb = file.file.tell() / (1024 * 1024)
@@ -128,6 +142,7 @@ async def create_detection(
                 sam3_mask_threshold=sam3_mask_threshold,
             ),
             repo=repo,
+            project_id=project_uuid,
         )
     except AppError as exc:
         raise HTTPException(exc.status_code, detail=exc.detail) from exc
@@ -141,9 +156,20 @@ async def create_detection(
 def list_detections(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100000, validation_alias="pageSize"),
+    project_id: str = Query("", validation_alias="projectId"),
+    review_status: str = Query("", validation_alias="reviewStatus"),
     repo: DetectionRepository = Depends(get_repo),
 ) -> APIResponse:
-    items, total = repo.list(page=page, page_size=page_size)
+    try:
+        project_uuid = resolve_project_id(repo.db, project_id) if project_id else None
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+    items, total = repo.list(
+        page=page,
+        page_size=page_size,
+        project_id=project_uuid,
+        review_status=review_status or None,
+    )
     return APIResponse(
         data=[DetectionListItem.model_validate(d).model_dump(by_alias=True) for d in items],
         total=total,
@@ -163,6 +189,81 @@ def get_detection(
     return APIResponse(
         data=DetectionOut.model_validate(det).model_dump(by_alias=True),
     )
+
+
+@router.post("/detections/{detection_id}/review")
+def review_detection(
+    detection_id: str,
+    body: ReviewStatusIn,
+    repo: DetectionRepository = Depends(get_repo),
+) -> APIResponse:
+    det = repo.get_by_id(detection_id)
+    if not det:
+        raise NotFoundError("Detection", detection_id)
+    det.review_status = body.status
+    repo.update_detection(det, commit=True)
+    return APIResponse(data=DetectionOut.model_validate(det).model_dump(by_alias=True))
+
+
+@router.post("/detections/{detection_id}/redetect")
+async def redetect_detection(
+    detection_id: str,
+    body: RedetectIn,
+    repo: DetectionRepository = Depends(get_repo),
+) -> APIResponse:
+    det = repo.get_by_id(detection_id)
+    if not det:
+        raise NotFoundError("Detection", detection_id)
+    if not Path(det.image_path).exists():
+        raise HTTPException(404, "Image file not found")
+
+    categories = [item.strip() for item in (body.categories or det.categories) if item.strip()]
+    if not categories:
+        raise HTTPException(400, "categories cannot be empty")
+
+    new_detection = await process_detection(
+        filepath=det.image_path,
+        original_name=det.image_name,
+        categories=categories,
+        params=DetectionParams(
+            use_vlm=body.use_vlm,
+            extra_state=body.extra_state,
+            extra_instructions=body.extra_instructions,
+            category_instructions=body.category_instructions,
+            use_sam2=body.use_sam2,
+            use_sam3=body.use_sam3,
+            sam2_score_threshold=body.sam2_score_threshold,
+            sam3_text=body.sam3_text,
+            use_sam3_seg=body.use_sam3_seg,
+            sam3_threshold=body.sam3_threshold,
+            sam3_mask_threshold=body.sam3_mask_threshold,
+        ),
+        repo=repo,
+        project_id=det.project_id,
+    )
+
+    box_dicts = [
+        {
+            "class_name": box.class_name,
+            "x1": box.x1,
+            "y1": box.y1,
+            "x2": box.x2,
+            "y2": box.y2,
+            "confidence": box.confidence,
+            "mask_polygon": box.mask_polygon,
+        }
+        for box in new_detection.boxes
+    ]
+    repo.replace_boxes(str(det.id), box_dicts)
+    det.model_name = new_detection.model_name
+    det.model_type = new_detection.model_type
+    det.elapsed_ms = new_detection.elapsed_ms
+    det.categories = categories
+    det.review_status = ReviewStatus.pending
+    repo.delete(new_detection)
+    repo.db.commit()
+    repo.db.refresh(det)
+    return APIResponse(data=DetectionOut.model_validate(det).model_dump(by_alias=True))
 
 
 @router.post("/detections/{detection_id}/delete", status_code=204)
@@ -216,7 +317,7 @@ def add_box(
     det = repo.get_by_id(detection_id)
     if not det:
         raise NotFoundError("Detection", detection_id)
-    repo.add_boxes(
+    boxes = repo.add_boxes(
         detection_id,
         [
             {
@@ -229,7 +330,7 @@ def add_box(
         ],
         commit=True,
     )
-    return APIResponse(data={"ok": True})
+    return APIResponse(data=DetectionBoxOut.model_validate(boxes[0]).model_dump(by_alias=True))
 
 
 class ReplaceBoxItem(BaseSchema):

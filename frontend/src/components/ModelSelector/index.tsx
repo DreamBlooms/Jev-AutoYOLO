@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useAppStore } from "@/store/useAppStore";
 import { Select } from "@/components/ui/select";
 
 interface Props {
@@ -19,11 +20,12 @@ export function ModelSelector({
   onExternalFile,
 }: Props) {
   const { t, i18n } = useTranslation();
+  const projectId = useAppStore((state) => state.currentProjectId);
   const { data: jobs } = useQuery({
     // Keep a separate key from the training panel's infinite query. Sharing
     // ["training-jobs"] makes this query read the infinite-query cache shape.
-    queryKey: ["training-jobs", "model-selector"],
-    queryFn: () => fetchTrainingJobs(1, 1000),
+    queryKey: ["training-jobs", "model-selector", projectId],
+    queryFn: () => fetchTrainingJobs(1, 1000, projectId ?? undefined),
     staleTime: 5_000,
   });
 

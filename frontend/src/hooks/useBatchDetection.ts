@@ -1,4 +1,6 @@
+import { useAppStore } from "@/store/useAppStore";
 export function useBatchDetection() {
+  const projectId = useAppStore((s) => s.currentProjectId);
   const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
   const batchRef = useRef(false);
 
@@ -44,6 +46,7 @@ export function useBatchDetection() {
             extraInstructions,
             categoryInstructions,
             signal,
+            projectId ?? undefined,
           );
           results.push(data);
           if (i === files.length - 1) {
@@ -63,7 +66,7 @@ export function useBatchDetection() {
       }
       return { results, elapsed };
     },
-    [],
+    [projectId],
   );
 
   const cancelBatch = useCallback(() => {

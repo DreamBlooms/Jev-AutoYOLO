@@ -32,9 +32,11 @@ class DetectionRepository:
         image_height: int,
         categories: list,  # JSONB stores Python list directly
         model_name: str = "Jev",
+        project_id: uuid.UUID | None = None,
         commit: bool = False,
     ) -> Detection:
         det = Detection(
+            project_id=project_id,
             image_path=image_path,
             image_name=image_name,
             image_width=image_width,
@@ -114,8 +116,14 @@ class DetectionRepository:
         *,
         page: int = 1,
         page_size: int = 20,
+        project_id: uuid.UUID | None = None,
+        review_status: str | None = None,
     ) -> tuple[Sequence[Detection], int]:
         q = self.db.query(Detection)
+        if project_id is not None:
+            q = q.filter(Detection.project_id == project_id)
+        if review_status:
+            q = q.filter(Detection.review_status == review_status)
         total = q.count()
         items = (
             q.order_by(Detection.created_at.desc())

@@ -20,7 +20,11 @@ pnpm run build
 
 ## Key Areas
 
-- `src/pages/Home.tsx` - main workflow surface for upload, detection, filtering, history, training, and validation.
+- `src/pages/ProjectsPage.tsx` - multi-project workspace cards and project creation.
+- `src/pages/ProjectDetailPage.tsx` - project-scoped annotation, review, dataset, training, and model tabs.
+- `src/pages/Home.tsx` - annotation workspace for upload, detection, filtering, history, training, and validation.
+- `src/components/project/` - project review, dataset, training, and model panels.
+- `src/components/Layout/index.tsx` - AutoLaya-style app shell with project, review, dataset, model, and settings navigation.
 - `src/components/DetectionCanvas.tsx` - image preview, bounding-box rendering, and manual drawing.
 - `src/components/DetectionResult.tsx` - result actions, YOLO export, batch thumbnails, and validation-safe controls.
 - `src/components/ResultTable.tsx` - box table, visibility toggles, and delete actions.

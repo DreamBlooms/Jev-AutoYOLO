@@ -25,8 +25,10 @@ class VideoRepository:
         total_frames: int | None = None,
         width: int | None = None,
         height: int | None = None,
+        project_id=None,
     ) -> Video:
         video = Video(
+            project_id=project_id,
             file_path=file_path,
             file_name=file_name,
             duration=duration,
@@ -47,8 +49,12 @@ class VideoRepository:
             .first()
         )
 
-    def list_videos(self, *, page: int = 1, page_size: int = 20) -> tuple[Sequence[Video], int]:
+    def list_videos(
+        self, *, page: int = 1, page_size: int = 20, project_id=None
+    ) -> tuple[Sequence[Video], int]:
         q = self.db.query(Video).options(joinedload(Video.keyframes))
+        if project_id is not None:
+            q = q.filter(Video.project_id == project_id)
         total = q.count()
         items = (
             q.order_by(Video.created_at.desc())

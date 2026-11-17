@@ -56,11 +56,14 @@ def export_batch(db: Session, detection_ids: list[str], format: str = "yolo") ->
     return _export_detections(dets, format)
 
 
-def export_all(db: Session, format: str = "yolo") -> bytes:
-    """Export every saved detection as a zip file in the requested format."""
+def export_all(db: Session, format: str = "yolo", project_id=None) -> bytes:
+    """Export saved detections as a zip file in the requested format."""
     from ..models.detection import Detection
 
-    dets: list[Detection] = db.query(Detection).order_by(Detection.created_at.asc()).all()
+    q = db.query(Detection)
+    if project_id is not None:
+        q = q.filter(Detection.project_id == project_id)
+    dets: list[Detection] = q.order_by(Detection.created_at.asc()).all()
     if not dets:
         raise ValueError("No detections available for export")
 

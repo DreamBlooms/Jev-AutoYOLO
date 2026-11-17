@@ -9,6 +9,7 @@ from .common import BaseSchema, _coerce_uuid
 
 
 class TrainRequest(BaseSchema):
+    project_id: str | None = None
     detection_ids: list[str] = Field(..., min_length=1)
     model_variant: str = Field(default="yolo26n")
     epochs: int = Field(default=100, ge=1, le=1000)
@@ -23,6 +24,7 @@ class TrainRequest(BaseSchema):
 
 class TrainingJobOut(BaseSchema):
     id: str
+    project_id: str | None = None
     name: str | None = None
     model_variant: str
     epochs: int
@@ -43,7 +45,7 @@ class TrainingJobOut(BaseSchema):
 
     model_config = {"from_attributes": True}
 
-    @field_validator("id", mode="before")
+    @field_validator("id", "project_id", mode="before")
     @classmethod
-    def coerce_id(cls, v: Any) -> str:
-        return _coerce_uuid(v)
+    def coerce_id(cls, v: Any) -> str | None:
+        return _coerce_uuid(v) if v is not None else None

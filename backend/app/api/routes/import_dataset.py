@@ -45,6 +45,7 @@ async def chunk_init(request: Request) -> APIResponse:
     file_name = body.get("fileName", "dataset.zip")
     total_size = body.get("totalSize", 0)
     fmt = body.get("format", "yolo")
+    project_id = body.get("projectId", "")
 
     if not total_size or not file_name:
         raise HTTPException(400, "fileName and totalSize are required")
@@ -82,6 +83,7 @@ async def chunk_init(request: Request) -> APIResponse:
         "chunkSize": chunk_size,
         "totalChunks": total_chunks,
         "format": fmt,
+        "projectId": project_id,
     }
     (chunk_dir / "meta.json").write_text(json.dumps(meta))
 
@@ -222,7 +224,12 @@ def chunk_complete(
         db = SessionLocal()
         local_repo = DetectionRepository(db)
         try:
-            detection_ids = do_import(db, local_repo, str(zip_path), meta["format"], cancel_event)
+            from ...services.projects import resolve_project_id
+
+            project_uuid = resolve_project_id(db, meta.get("projectId", ""))
+            detection_ids = do_import(
+                db, local_repo, str(zip_path), meta["format"], cancel_event, project_id=project_uuid
+            )
             _write_progress(
                 import_id,
                 {
@@ -271,6 +278,7 @@ def chunk_cancel(upload_id: str) -> APIResponse:
 def import_dataset(
     file: UploadFile = File(...),
     fmt: str = Form("yolo", alias="format"),
+    project_id: str = Form(""),
     repo: DetectionRepository = Depends(get_repo),
 ) -> APIResponse:
     """[DEPRECATED] Use chunked upload instead.
@@ -307,11 +315,20 @@ def import_dataset(
 
     _write_progress(import_id, {"total": 0, "completed": 0, "status": "processing"})
 
+    try:
+        from ...services.projects import resolve_project_id
+
+        project_uuid = resolve_project_id(repo.db, project_id)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
     def _run():
         db = SessionLocal()
         local_repo = DetectionRepository(db)
         try:
-            detection_ids = do_import(db, local_repo, str(zip_path), fmt, cancel_event)
+            detection_ids = do_import(
+                db, local_repo, str(zip_path), fmt, cancel_event, project_id=project_uuid
+            )
             _write_progress(
                 import_id,
                 {

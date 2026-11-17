@@ -1,3 +1,30 @@
+import type { BBox, Project } from "@/types";
+// ── Projects ─────────────────────────────────────
+
+export async function listProjects(): Promise<Project[]> {
+  const { data } = await request.get<{ data: Project[] }>("/projects");
+  return data.data;
+}
+
+export async function getProject(id: string): Promise<Project> {
+  const { data } = await request.get<{ data: Project }>(`/projects/${id}`);
+  return data.data;
+}
+
+export async function createProject(body: { name: string; description?: string; categories?: string[] }): Promise<Project> {
+  const { data } = await request.post<{ data: Project }>("/projects", body);
+  return data.data;
+}
+
+export async function updateProject(id: string, body: { name?: string; description?: string; categories?: string[] }): Promise<Project> {
+  const { data } = await request.patch<{ data: Project }>(`/projects/${id}`, body);
+  return data.data;
+}
+
+export async function deleteProject(id: string): Promise<void> {
+  await request.post(`/projects/${id}/delete`);
+}
+
 // Using auto-imported centralized request helper
 
 export async function detectImage(
@@ -15,10 +42,12 @@ export async function detectImage(
   extraInstructions?: string,
   categoryInstructions?: Record<string, string>,
   signal?: AbortSignal,
+  projectId?: string,
 ): Promise<DetectResponse> {
   const form = new FormData();
   form.append("file", file);
   form.append("categories", JSON.stringify(categories));
+  if (projectId) form.append("project_id", projectId);
   if (extraState?.trim()) form.append("extra_state", extraState.trim());
   if (extraInstructions?.trim()) form.append("extra_instructions", extraInstructions.trim());
   const filteredCategoryInstructions = Object.fromEntries(
@@ -48,15 +77,22 @@ export async function detectImage(
 export async function listDetections(
   page = 1,
   pageSize = 50,
+  projectId?: string,
+  reviewStatus?: string,
 ): Promise<{ items: Detection[]; total: number }> {
   const { data } = await request.get<ListResponse<Detection>>("/detections", {
-    params: { page, pageSize },
+    params: { page, pageSize, projectId, reviewStatus },
   });
   return { items: data.data, total: data.total };
 }
 
 export async function getDetection(id: string): Promise<Detection> {
   const { data } = await request.get<{ data: Detection }>(`/detections/${id}`);
+  return data.data;
+}
+
+export async function reviewDetection(id: string, status: string): Promise<Detection> {
+  const { data } = await request.post<{ data: Detection }>(`/detections/${id}/review`, { status });
   return data.data;
 }
 
@@ -71,8 +107,30 @@ export async function deleteBox(detectionId: string, boxId: string): Promise<voi
 export async function addBox(
   detectionId: string,
   box: { className: string; x1: number; y1: number; x2: number; y2: number },
-): Promise<void> {
-  await request.post(`/detections/${detectionId}/boxes`, box);
+): Promise<BBox> {
+  const { data } = await request.post<{ data: BBox }>(`/detections/${detectionId}/boxes`, box);
+  return data.data;
+}
+
+export async function redetectDetection(
+  detectionId: string,
+  params: {
+    categories?: string[];
+    useVlm?: boolean;
+    useSam2?: boolean;
+    useSam3?: boolean;
+    useSam3Seg?: boolean;
+    sam2ScoreThreshold?: number;
+    sam3Text?: string;
+    sam3Threshold?: number;
+    sam3MaskThreshold?: number;
+    extraState?: string;
+    extraInstructions?: string;
+    categoryInstructions?: Record<string, string>;
+  },
+): Promise<Detection> {
+  const { data } = await request.post<{ data: Detection }>(`/detections/${detectionId}/redetect`, params);
+  return data.data;
 }
 
 export function exportSingleUrl(id: string): string {
@@ -88,10 +146,10 @@ export async function exportBatch(ids: string[], format = "yolo"): Promise<Blob>
   return data;
 }
 
-export async function exportAll(format = "yolo-seg"): Promise<Blob> {
+export async function exportAll(format = "yolo-seg", projectId?: string): Promise<Blob> {
   const { data } = await request.post(
     "/detections/export-all",
-    { format },
+    { format, projectId },
     { responseType: "blob" },
   );
   return data;
@@ -107,6 +165,7 @@ export async function fetchYoloSeries(): Promise<YoloSeries> {
 }
 
 export async function startTraining(params: {
+  projectId?: string;
   detectionIds: string[];
   modelVariant: string;
   epochs: number;
@@ -123,9 +182,10 @@ export async function startTraining(params: {
 export async function fetchTrainingJobs(
   page = 1,
   pageSize = 30,
+  projectId?: string,
 ): Promise<{ items: TrainingJob[]; total: number }> {
   const { data } = await request.get<ListResponse<TrainingJob>>("/train/jobs", {
-    params: { page, pageSize },
+    params: { page, pageSize, projectId },
   });
   return { items: data.data ?? [], total: data.total };
 }
@@ -168,9 +228,10 @@ export function downloadBlob(blob: Blob, filename: string): void {
 
 // ── Video ───────────────────────────────────────
 
-export async function uploadVideo(file: File): Promise<VideoInfo> {
+export async function uploadVideo(file: File, projectId?: string): Promise<VideoInfo> {
   const form = new FormData();
   form.append("file", file);
+  if (projectId) form.append("project_id", projectId);
   const { data } = await request.post<{ data: VideoInfo }>("/videos/upload", form, {
     timeout: UPLOAD_TIMEOUT,
   });
@@ -180,9 +241,10 @@ export async function uploadVideo(file: File): Promise<VideoInfo> {
 export async function listVideos(
   page = 1,
   pageSize = 30,
+  projectId?: string,
 ): Promise<{ items: VideoInfo[]; total: number }> {
   const { data } = await request.get<ListResponse<VideoInfo>>("/videos", {
-    params: { page, pageSize },
+    params: { page, pageSize, projectId },
   });
   return { items: data.data, total: data.total };
 }
@@ -213,8 +275,8 @@ export async function deleteVideo(id: string): Promise<void> {
   await request.post(`/videos/${id}/delete`);
 }
 
-export async function deleteAllVideos(): Promise<void> {
-  await request.post("/videos/delete-bulk");
+export async function deleteAllVideos(projectId?: string): Promise<void> {
+  await request.post("/videos/delete-bulk", null, { params: { projectId } });
 }
 
 export function keyframeImageUrl(videoId: string, keyframeId: string): string {
@@ -357,10 +419,11 @@ export async function importChunkInit(
   fileName: string,
   totalSize: number,
   format: string,
+  projectId?: string,
 ): Promise<ChunkInitResult> {
   const { data } = await request.post<{ data: ChunkInitResult }>(
     "/datasets/import/chunk/init",
-    { fileName, totalSize, chunkSize: 5 * 1024 * 1024, format },
+    { fileName, totalSize, chunkSize: 5 * 1024 * 1024, format, projectId },
   );
   return data.data;
 }
@@ -381,10 +444,12 @@ export async function importChunkCancel(uploadId: string): Promise<void> {
 export async function importDataset(
   file: File,
   format: string,
+  projectId?: string,
 ): Promise<ImportResult> {
   const form = new FormData();
   form.append("file", file);
   form.append("format", format);
+  if (projectId) form.append("project_id", projectId);
   const { data } = await request.post<{ data: ImportResult }>("/datasets/import", form, {
     timeout: UPLOAD_TIMEOUT,
   });

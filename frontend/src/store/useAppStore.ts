@@ -2,6 +2,10 @@ import { create } from "zustand";
 import type { FilterMode } from "@/lib/filterBoxes";
 
 interface AppState {
+  // Project context
+  currentProjectId: string | null;
+  setCurrentProjectId: (id: string | null) => void;
+
   // Runtime config
   annotationOnly: boolean;
   setAnnotationOnly: (v: boolean) => void;
@@ -98,6 +102,10 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
+  // Project context
+  currentProjectId: null,
+  setCurrentProjectId: (currentProjectId) => set({ currentProjectId }),
+
   // Runtime config
   annotationOnly: false,
   setAnnotationOnly: (annotationOnly) => set({ annotationOnly }),

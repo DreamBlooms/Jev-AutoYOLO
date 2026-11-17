@@ -9,8 +9,11 @@ export interface BBox {
   maskPolygon?: number[][] | null;
 }
 
+export type ReviewStatus = "pending" | "accepted" | "rejected";
+
 export interface Detection {
   id: string;
+  projectId: string | null;
   imageName: string;
   categories: string[];
   modelName: string;
@@ -21,6 +24,7 @@ export interface Detection {
   filterMode: string | null;
   filterNmsIou: number | null;
   status: string;
+  reviewStatus: ReviewStatus;
   createdAt: string;
   boxes: BBox[];
 }
@@ -29,6 +33,7 @@ export type DetectResponse = Detection;
 
 export interface TrainingJob {
   id: string;
+  projectId: string | null;
   name: string | null;
   modelVariant: string;
   epochs: number;
@@ -59,6 +64,7 @@ export interface KeyFrame {
 
 export interface VideoInfo {
   id: string;
+  projectId: string | null;
   fileName: string;
   duration: number | null;
   fps: number | null;
@@ -80,4 +86,19 @@ export interface ListResponse<T> {
   total: number;
   page: number;
   pageSize: number;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  categories: string[];
+  createdAt: string;
+  updatedAt: string;
+  imageCount: number;
+  boxCount: number;
+  videoCount: number;
+  trainingJobCount: number;
+  modelCount: number;
+  pendingReviewCount: number;
 }

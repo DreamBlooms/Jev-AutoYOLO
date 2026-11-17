@@ -31,6 +31,8 @@ export interface SidebarProps {
   result: Detection | null;
   setResult: (result: Detection | null) => void;
   handleSelectKeyframe: (files: File[]) => void;
+  simple?: boolean;
+  validationOnly?: boolean;
 }
 
 export function Sidebar({
@@ -48,6 +50,8 @@ export function Sidebar({
   result,
   setResult,
   handleSelectKeyframe,
+  simple = false,
+  validationOnly = false,
 }: SidebarProps) {
   const { t } = useTranslation();
   const {
@@ -73,61 +77,65 @@ export function Sidebar({
 
   return (
     <aside
-      className="relative flex h-full w-full shrink-0 flex-col gap-3 overflow-y-auto border-b border-border bg-muted/20 p-3 text-foreground lg:w-[420px] lg:border-b-0 lg:border-r"
+      className={`relative flex h-full w-full shrink-0 flex-col gap-3 overflow-y-auto border-b border-border bg-muted/20 p-3 text-foreground lg:border-b-0 lg:border-r ${simple ? "lg:w-[360px]" : "lg:w-[420px]"}`}
     >
       <div className="space-y-3 rounded-xl border border-border bg-card p-3 shadow-sm">
-      {/* Model selector */}
-      <div className="relative flex min-h-9 rounded-lg bg-muted p-1">
-        {(["jev", "vlm", "sam3"] as const).map((mode) => {
-          const active =
-            mode === "sam3" ? useSam3 : mode === "vlm" ? useVlm && !useSam3 : !useSam3 && !useVlm;
-          return (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => {
-                if (mode === "sam3") {
-                  setUseSam3(true);
-                  setUseVlm(false);
-                } else {
-                  setUseSam3(false);
-                  setUseVlm(mode === "vlm");
-                }
-              }}
-              className={`relative z-10 flex-1 cursor-pointer rounded-md px-3 py-1 text-xs font-semibold transition-all ${
-                active
-                  ? "bg-background text-primary shadow-sm ring-1 ring-inset ring-border"
-                  : "text-muted-foreground hover:bg-background/60 hover:text-foreground"
-              }`}
-            >
-              {mode === "sam3" ? "SAM3" : mode === "vlm" ? "VLM" : "Jev"}
-            </button>
-          );
-        })}
-      </div>
-
-      {useSam3 ? <Sam3Status /> : <ModelStatus mode={useVlm ? "vlm" : "jev"} />}
+      {!validationOnly ? (
+        <>
+          <div className="relative flex min-h-9 rounded-lg bg-muted p-1">
+            {(["jev", "vlm", "sam3"] as const).map((mode) => {
+              const active =
+                mode === "sam3" ? useSam3 : mode === "vlm" ? useVlm && !useSam3 : !useSam3 && !useVlm;
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => {
+                    if (mode === "sam3") {
+                      setUseSam3(true);
+                      setUseVlm(false);
+                    } else {
+                      setUseSam3(false);
+                      setUseVlm(mode === "vlm");
+                    }
+                  }}
+                  className={`relative z-10 flex-1 cursor-pointer rounded-md px-3 py-1 text-xs font-semibold transition-all ${
+                    active
+                      ? "bg-background text-primary shadow-sm ring-1 ring-inset ring-border"
+                      : "text-muted-foreground hover:bg-background/60 hover:text-foreground"
+                  }`}
+                >
+                  {mode === "sam3" ? "SAM3" : mode === "vlm" ? "VLM" : "Jev"}
+                </button>
+              );
+            })}
+          </div>
+          {useSam3 ? <Sam3Status /> : <ModelStatus mode={useVlm ? "vlm" : "jev"} />}
+        </>
+      ) : null}
       <DeviceSelector />
       </div>
 
       {/* Mode tabs */}
-      <div className="mb-1 flex border-b border-border">
-        {(["annotate", "validate"] as const).map((m) => (
-          <button
-            key={m}
-            onClick={() => { setAppMode(m); setResult(null); setValidateVideoId(null); }}
-            className={`flex-1 pb-3 pt-1 text-sm font-bold transition-all duration-200 relative text-center cursor-pointer ${
-              appMode === m
-                ? "border-b-2 border-primary text-primary"
-                : "border-b-2 border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {{ annotate: t("common.annotate"), validate: t("common.validate") }[m]}
-          </button>
-        ))}
-      </div>
+      {!simple ? (
+        <div className="mb-1 flex border-b border-border">
+          {(["annotate", "validate"] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => { setAppMode(m); setResult(null); setValidateVideoId(null); }}
+              className={`flex-1 pb-3 pt-1 text-sm font-bold transition-all duration-200 relative text-center cursor-pointer ${
+                appMode === m
+                  ? "border-b-2 border-primary text-primary"
+                  : "border-b-2 border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {{ annotate: t("common.annotate"), validate: t("common.validate") }[m]}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
-      {appMode === "validate" && (
+      {!simple && appMode === "validate" && !validationOnly && (
         <ValidationSettings
           selectedJobId={selectedTrainedJobId}
           onSelectJob={setSelectedTrainedJobId}
@@ -141,6 +149,21 @@ export function Sidebar({
           onIouChange={setValidateIou}
         />
       )}
+
+      {validationOnly ? (
+        <ValidationSettings
+          selectedJobId={selectedTrainedJobId}
+          onSelectJob={setSelectedTrainedJobId}
+          modelSource={validateModelSource}
+          onSourceChange={setValidateModelSource}
+          externalFile={externalModelFile}
+          onExternalFile={setExternalModelFile}
+          validateConf={validateConf}
+          onConfChange={setValidateConf}
+          validateIou={validateIou}
+          onIouChange={setValidateIou}
+        />
+      ) : null}
 
       {/* Input mode: Image / Video */}
       <div>
@@ -186,12 +209,13 @@ export function Sidebar({
             filesCount={files.length}
             batchProgress={batchProgress}
             onDetect={handleDetect}
+            validationOnly={validationOnly}
           />
-          {!useSam3 && !useVlm && <JevAdvancedSettings />}
+          {!validationOnly && !useSam3 && !useVlm && <JevAdvancedSettings />}
         </>
       )}
 
-      {appMode === "validate" && inputMode === "video" && (
+      {!simple && appMode === "validate" && inputMode === "video" && (
         <div className="py-2 text-center text-xs text-muted-foreground">
           {validateVideoId ? t("home.placeholderVideoRunning") : t("home.placeholderSelectVideo")}
         </div>
@@ -204,7 +228,7 @@ export function Sidebar({
         onCancel={cancel}
       />
 
-      {result && (
+      {result && !validationOnly && (
         <FilterPanel
           filterMode={filterMode}
           onFilterModeChange={setFilterMode}
@@ -214,6 +238,8 @@ export function Sidebar({
         />
       )}
 
+      {!simple ? (
+        <>
       <hr className="border-border" />
 
       <div>
@@ -248,6 +274,8 @@ export function Sidebar({
           />
         </div>
       )}
+        </>
+      ) : null}
     </aside>
   );
 }

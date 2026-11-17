@@ -26,6 +26,7 @@ declare global {
   const BOX_COLORS: typeof import('./lib/constants').BOX_COLORS
   const Badge: typeof import('./components/ui/badge').Badge
   const BatchProgress: typeof import('./components/BatchProgress/index').BatchProgress
+  const BrandMark: typeof import('./components/BrandMark').BrandMark
   const Button: typeof import('./components/ui/button').Button
   const CANVAS_MAX_H: typeof import('./lib/constants').CANVAS_MAX_H
   const CANVAS_MAX_W: typeof import('./lib/constants').CANVAS_MAX_W
@@ -39,6 +40,7 @@ declare global {
   const CardTitle: typeof import('./components/ui/card').CardTitle
   const CategoryInput: typeof import('./components/CategoryInput/index').CategoryInput
   const Checkbox: typeof import('./components/ui/checkbox').Checkbox
+  const ClassicWorkspacePage: typeof import('./pages/ClassicWorkspacePage').ClassicWorkspacePage
   const ConfirmAction: typeof import('./components/ConfirmAction').ConfirmAction
   const DEFAULT_BATCH: typeof import('./lib/constants').DEFAULT_BATCH
   const DEFAULT_CONF: typeof import('./lib/constants').DEFAULT_CONF
@@ -48,6 +50,8 @@ declare global {
   const DEFAULT_TIMEOUT: typeof import('./services/request').DEFAULT_TIMEOUT
   const DETECT_TIMEOUT: typeof import('./services/request').DETECT_TIMEOUT
   const DatasetImportModal: typeof import('./components/DatasetImportModal/index').DatasetImportModal
+  const DatasetsPage: typeof import('./pages/DatasetsPage').DatasetsPage
+  const DatasetsPanel: typeof import('./components/project/DatasetsPanel').DatasetsPanel
   const DetectionCanvas: typeof import('./components/DetectionCanvas/index').DetectionCanvas
   const DetectionControls: typeof import('./components/Sidebar/DetectionControls').DetectionControls
   const DetectionResult: typeof import('./components/DetectionResult/index').DetectionResult
@@ -79,6 +83,7 @@ declare global {
   const ExtractionPanel: typeof import('./components/VideoPanel/ExtractionPanel').ExtractionPanel
   const FilterPanel: typeof import('./components/FilterPanel/index').FilterPanel
   const Fragment: typeof import('react').Fragment
+  const FullStepsPage: typeof import('./pages/FullStepsPage').FullStepsPage
   const HistoryList: typeof import('./components/HistoryList/index').HistoryList
   const HistoryListItem: typeof import('./components/HistoryListItem/index').HistoryListItem
   const HistorySkeleton: typeof import('./components/LoadingSkeleton/index').HistorySkeleton
@@ -93,22 +98,34 @@ declare global {
   const Label: typeof import('./components/ui/label').Label
   const Layout: typeof import('./components/Layout/index').Layout
   const MAX_UPLOAD_SIZE_MB: typeof import('./lib/constants').MAX_UPLOAD_SIZE_MB
+  const MockStep: typeof import('./components/Onboarding').MockStep
   const Modal: typeof import('./components/ui/ant-compat').Modal
   const ModelDownloadButton: typeof import('./components/ModelDownloadButton/index').ModelDownloadButton
   const ModelSelector: typeof import('./components/ModelSelector/index').ModelSelector
   const ModelStatus: typeof import('./components/ModelStatus/index').ModelStatus
+  const ModelsPage: typeof import('./pages/ModelsPage').ModelsPage
+  const ModelsPanel: typeof import('./components/project/ModelsPanel').ModelsPanel
+  const NAV: typeof import('./components/Layout/index').NAV
+  const Onboarding: typeof import('./components/Onboarding').Onboarding
+  const PageHeader: typeof import('./components/PageHeader').PageHeader
   const Popconfirm: typeof import('./components/ui/ant-compat').Popconfirm
   const Popover: typeof import('./components/ui/popover').Popover
   const PopoverAnchor: typeof import('./components/ui/popover').PopoverAnchor
   const PopoverContent: typeof import('./components/ui/popover').PopoverContent
   const PopoverTrigger: typeof import('./components/ui/popover').PopoverTrigger
   const Progress: typeof import('./components/ui/progress').Progress
+  const ProjectDetailPage: typeof import('./pages/ProjectDetailPage').ProjectDetailPage
+  const ProjectTrainingPanel: typeof import('./components/project/TrainingPanel').ProjectTrainingPanel
+  const ProjectsPage: typeof import('./pages/ProjectsPage').ProjectsPage
   const QueryClient: typeof import('@tanstack/react-query').QueryClient
   const QueryClientProvider: typeof import('@tanstack/react-query').QueryClientProvider
   const ResultTable: typeof import('./components/ResultTable/index').ResultTable
+  const ReviewPage: typeof import('./pages/ReviewPage').ReviewPage
+  const ReviewPanel: typeof import('./components/project/ReviewPanel').ReviewPanel
   const Sam3Status: typeof import('./components/Sam3Status/index').Sam3Status
   const Select: typeof import('./components/ui/select').Select
   const Separator: typeof import('./components/ui/separator').Separator
+  const SettingsPage: typeof import('./pages/SettingsPage').SettingsPage
   const Sidebar: typeof import('./components/Sidebar/index').Sidebar
   const SidebarHeader: typeof import('./components/Sidebar/Header').SidebarHeader
   const Skeleton: typeof import('./components/ui/skeleton').Skeleton
@@ -125,6 +142,7 @@ declare global {
   const TabsContent: typeof import('./components/ui/tabs').TabsContent
   const TabsList: typeof import('./components/ui/tabs').TabsList
   const TabsTrigger: typeof import('./components/ui/tabs').TabsTrigger
+  const TagFilter: typeof import('./components/TagFilter').TagFilter
   const Textarea: typeof import('./components/ui/textarea').Textarea
   const ThemeContext: typeof import('./hooks/useTheme').ThemeContext
   const ThemeProvider: typeof import('./components/ThemeProvider/index').ThemeProvider
@@ -140,6 +158,7 @@ declare global {
   const VideoPanel: typeof import('./components/VideoPanel/index').VideoPanel
   const VideoValidator: typeof import('./components/VideoValidator/index').VideoValidator
   const addBox: typeof import('./services/api').addBox
+  const apiErrorMessage: typeof import('./lib/errors').apiErrorMessage
   const applyFilter: typeof import('./lib/filterBoxes').applyFilter
   const badgeVariants: typeof import('./components/ui/badge').badgeVariants
   const batchFileMap: typeof import('./lib/cache').batchFileMap
@@ -152,10 +171,12 @@ declare global {
   const checkSam3Health: typeof import('./services/api').checkSam3Health
   const cn: typeof import('./lib/utils').cn
   const createContext: typeof import('react').createContext
+  const createProject: typeof import('./services/api').createProject
   const createRef: typeof import('react').createRef
   const deleteAllVideos: typeof import('./services/api').deleteAllVideos
   const deleteBox: typeof import('./services/api').deleteBox
   const deleteDetection: typeof import('./services/api').deleteDetection
+  const deleteProject: typeof import('./services/api').deleteProject
   const deleteTrainingJob: typeof import('./services/api').deleteTrainingJob
   const deleteVideo: typeof import('./services/api').deleteVideo
   const detectImage: typeof import('./services/api').detectImage
@@ -173,6 +194,7 @@ declare global {
   const fetchTrainingJobs: typeof import('./services/api').fetchTrainingJobs
   const fetchYoloSeries: typeof import('./services/api').fetchYoloSeries
   const fileUrlCache: typeof import('./lib/cache').fileUrlCache
+  const formatDate: typeof import('./lib/formatDate').formatDate
   const formatTime: typeof import('./lib/formatTime').formatTime
   const forwardRef: typeof import('react').forwardRef
   const generateYoloTxt: typeof import('./lib/yoloExport').generateYoloTxt
@@ -180,6 +202,7 @@ declare global {
   const getDetection: typeof import('./services/api').getDetection
   const getFileUrl: typeof import('./lib/cache').getFileUrl
   const getModelStatus: typeof import('./services/api').getModelStatus
+  const getProject: typeof import('./services/api').getProject
   const getSam2Status: typeof import('./services/api').getSam2Status
   const getVideo: typeof import('./services/api').getVideo
   const importChunkCancel: typeof import('./services/api').importChunkCancel
@@ -189,13 +212,16 @@ declare global {
   const keyframeImageUrl: typeof import('./services/api').keyframeImageUrl
   const lazy: typeof import('react').lazy
   const listDetections: typeof import('./services/api').listDetections
+  const listProjects: typeof import('./services/api').listProjects
   const listVideos: typeof import('./services/api').listVideos
   const memo: typeof import('react').memo
   const optimisticModelLoading: typeof import('./hooks/useModelEvents').optimisticModelLoading
   const optimisticModelUnloaded: typeof import('./hooks/useModelEvents').optimisticModelUnloaded
   const parseCategories: typeof import('./lib/parsers').parseCategories
+  const redetectDetection: typeof import('./services/api').redetectDetection
   const renameTrainingJob: typeof import('./services/api').renameTrainingJob
   const request: typeof import('./services/request').request
+  const reviewDetection: typeof import('./services/api').reviewDetection
   const saveFilterSettings: typeof import('./services/api').saveFilterSettings
   const setInferenceDevice: typeof import('./services/api').setInferenceDevice
   const startTraining: typeof import('./services/api').startTraining
@@ -205,6 +231,7 @@ declare global {
   const unloadModel: typeof import('./services/api').unloadModel
   const unloadSam2: typeof import('./services/api').unloadSam2
   const unloadSam3: typeof import('./services/api').unloadSam3
+  const updateProject: typeof import('./services/api').updateProject
   const uploadCache: typeof import('./lib/constants').uploadCache
   const uploadVideo: typeof import('./services/api').uploadVideo
   const use: typeof import('react').use
@@ -333,6 +360,9 @@ declare global {
   export type { ErrorBoundary } from './components/ErrorBoundary/index'
   import('./components/ErrorBoundary/index')
   // @ts-ignore
+  export type { StepKey } from './components/Onboarding'
+  import('./components/Onboarding')
+  // @ts-ignore
   export type { SidebarProps } from './components/Sidebar/index'
   import('./components/Sidebar/index')
   // @ts-ignore
@@ -342,6 +372,6 @@ declare global {
   export type { YoloSeries, AppConfig, ModelKind, ModelDownloadStatus, ImportResult, ImportProgress, ChunkInitResult } from './services/api'
   import('./services/api')
   // @ts-ignore
-  export type { BBox, Detection, DetectResponse, TrainingJob, KeyFrame, VideoInfo, ListResponse } from './types/index'
+  export type { BBox, ReviewStatus, Detection, DetectResponse, TrainingJob, KeyFrame, VideoInfo, ListResponse, Project } from './types/index'
   import('./types/index')
 }

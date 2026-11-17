@@ -17,6 +17,9 @@ class Video(Base):
         primary_key=True,
         default=uuid.uuid4,
     )
+    project_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid(as_uuid=True), ForeignKey("projects.id", ondelete="SET NULL"), nullable=True
+    )
     file_path: Mapped[str] = mapped_column(Text, nullable=False)
     file_name: Mapped[str] = mapped_column(String(512), nullable=False)
     duration: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -42,6 +45,7 @@ class Video(Base):
     __table_args__ = (
         Index("ix_videos_created_at", "created_at"),
         Index("ix_videos_status", "status"),
+        Index("ix_videos_project_id", "project_id"),
     )
 
 

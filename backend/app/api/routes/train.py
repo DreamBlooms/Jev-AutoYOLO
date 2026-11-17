@@ -22,6 +22,7 @@ from ...models.train import TrainingDetection, TrainingJob
 from ...schemas.common import APIResponse
 from ...schemas.train import TrainingJobOut, TrainRequest
 from ...services.trainer import YOLO_SERIES
+from ...services.projects import resolve_project_id
 from ...services.training_queue import cancel_job, enqueue_job
 from ..deps import get_request_id
 
@@ -47,7 +48,12 @@ def create_training_job(
     request_id: str = Depends(get_request_id),
 ) -> APIResponse:
     _ensure_training_enabled()
+    try:
+        project_uuid = resolve_project_id(db, body.project_id)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
     job = TrainingJob(
+        project_id=project_uuid,
         model_variant=body.model_variant,
         epochs=body.epochs,
         imgsz=body.imgsz,
@@ -129,8 +135,15 @@ def list_jobs(
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=1000, validation_alias="pageSize"),
+    project_id: str = Query("", validation_alias="projectId"),
 ) -> APIResponse:
     q = db.query(TrainingJob)
+    if project_id:
+        try:
+            project_uuid = resolve_project_id(db, project_id)
+        except ValueError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        q = q.filter(TrainingJob.project_id == project_uuid)
     total = q.count()
     items = (
         q.order_by(TrainingJob.created_at.desc())
@@ -332,6 +345,7 @@ def retrain_job(
         raise HTTPException(404, "Training job not found")
 
     new_job = TrainingJob(
+        project_id=job.project_id,
         model_variant=job.model_variant,
         epochs=job.epochs,
         imgsz=job.imgsz,

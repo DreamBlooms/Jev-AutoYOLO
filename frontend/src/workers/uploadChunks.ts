@@ -7,6 +7,7 @@ const API_BASE = "/api/v1";
 interface UploadRequest {
   file: File;
   format: string;
+  projectId?: string;
   uploadId?: string;
 }
 
@@ -41,7 +42,7 @@ async function uploadChunk(
   return false;
 }
 
-async function doUpload(file: File, format: string) {
+async function doUpload(file: File, format: string, projectId?: string) {
   _cancelled = false;
 
   // 1. Init or resume upload session
@@ -53,6 +54,7 @@ async function doUpload(file: File, format: string) {
       totalSize: file.size,
       chunkSize: CHUNK_SIZE,
       format,
+      projectId,
     }),
   });
 
@@ -109,7 +111,7 @@ type WorkerMessage =
 self.onmessage = (e: MessageEvent<WorkerMessage>) => {
   const msg = e.data;
   if (msg.type === "upload") {
-    doUpload(msg.file, msg.format);
+    doUpload(msg.file, msg.format, msg.projectId);
   } else if (msg.type === "cancel") {
     _cancelled = true;
   }

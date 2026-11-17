@@ -9,7 +9,7 @@ import { useDetectionProcess } from "@/hooks/useDetectionProcess";
 import { useDetectionHistory } from "@/hooks/useDetectionHistory";
 import { useDetectionAnnotation } from "@/hooks/useDetectionAnnotation";
 
-export function Home() {
+export function Home({ simple = false, validationOnly = false }: { simple?: boolean; validationOnly?: boolean }) {
   const { t } = useTranslation();
   const {
     appMode,
@@ -32,6 +32,7 @@ export function Home() {
     result,
     setResult,
     batchResults,
+    setAppMode,
   } = useAppStore();
 
   const {
@@ -72,6 +73,10 @@ export function Home() {
     return () => window.removeEventListener("keydown", handler);
   }, [batchResults, result, files, handleBatchSelect]);
 
+  useEffect(() => {
+    if (validationOnly) setAppMode("validate");
+  }, [validationOnly, setAppMode]);
+
   const sidebarProps = {
     recentCategories,
     handleFiles,
@@ -95,7 +100,7 @@ export function Home() {
 
   return (
     <div className="flex h-full min-h-0 flex-col lg:flex-row">
-      <Sidebar {...sidebarProps} />
+      <Sidebar {...sidebarProps} simple={simple} validationOnly={validationOnly} />
 
       <main className="min-h-0 flex-1 overflow-y-auto p-4 lg:p-6">
         <div className="flex min-h-full flex-col rounded-2xl border border-border bg-card p-4 shadow-sm">
@@ -116,7 +121,7 @@ export function Home() {
 
         {!validateVideoId && !displayResult && !previewUrl && (
           <div className="grid min-h-[60vh] flex-1 place-items-center rounded-xl border border-dashed border-border bg-card/60 p-8 text-center text-sm text-muted-foreground">
-            {t("home.placeholderDefault")}
+            {validationOnly ? t("home.placeholderValidation") : t("home.placeholderDefault")}
           </div>
         )}
         

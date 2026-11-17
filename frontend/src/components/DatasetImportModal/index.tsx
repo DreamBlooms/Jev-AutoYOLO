@@ -1,3 +1,4 @@
+import { useAppStore } from "@/store/useAppStore";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select } from "@/components/ui/select";
@@ -22,6 +23,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024 * 1024; // 10GB
 export function DatasetImportModal({ open, onClose }: Props) {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const projectId = useAppStore((s) => s.currentProjectId);
   const [fmt, setFmt] = useState("yolo");
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -141,8 +143,8 @@ export function DatasetImportModal({ open, onClose }: Props) {
       setError(t("datasetImport.importFailed"));
     };
 
-    worker.postMessage({ type: "upload", file, format: fmt });
-  }, [file, fmt, t, pollImport]);
+    worker.postMessage({ type: "upload", file, format: fmt, projectId: projectId ?? undefined });
+  }, [file, fmt, t, pollImport, projectId]);
 
 
   const handleCancel = useCallback(async () => {

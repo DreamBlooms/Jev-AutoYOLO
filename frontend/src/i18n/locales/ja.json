@@ -1,7 +1,7 @@
 {
   "common": {
-    "annotate": "Jev 标注",
-    "validate": "YOLO 検証",
+    "annotate": "アノテーション",
+    "validate": "検証",
     "image": "画像",
     "video": "動画",
     "categories": "対象分類",
@@ -24,7 +24,16 @@
     "mask": "領域",
     "themeLight": "明色模式",
     "themeDark": "暗色模式",
-    "themeSystem": "系統設定"
+    "themeSystem": "系統設定",
+    "language": "言語",
+    "notFound": "ページが見つかりません",
+    "refresh": "更新",
+    "light": "ライト",
+    "dark": "ダーク",
+    "back": "戻る",
+    "confirm": "確認",
+    "tags": "タグ",
+    "clearFilter": "クリア"
   },
   "home": {
     "detectBtnImage": "検出開始",
@@ -42,7 +51,8 @@
     "placeholderDefault": "画像/動画登録 → 分類入力 →「検出開始」",
     "yoloValidation": "YOLO 検証",
     "useSam2": "SAM2 領域分割有効",
-    "useSam3Seg": "SAM3 領域分割有効"
+    "useSam3Seg": "SAM3 領域分割有効",
+    "placeholderValidation": "学習済みまたは .pt モデルを選び、画像/動画を読み込んで「YOLO 検証」をクリックします。"
   },
   "filter": {
     "filterMode": "絞込方式",
@@ -369,6 +379,258 @@
     "notConfigured": "未設定"
   },
   "app": {
-    "tagline": "自動ラベリング · YOLO 学習 · ローカル展開"
+    "tagline": "マルチプロジェクト注釈 · YOLO 学習 · ローカル配備"
+  },
+  "nav": {
+    "projects": "プロジェクト",
+    "review": "レビュー",
+    "datasets": "データセット",
+    "models": "モデル",
+    "settings": "設定"
+  },
+  "projects": {
+    "title": "プロジェクト",
+    "subtitle": "画像、注釈、データセット、学習モデルを独立したワークスペースとして整理します。",
+    "new": "新規プロジェクト",
+    "workspace": "ワークスペース",
+    "deleteConfirm": "「{{name}}」とすべてのデータを削除しますか？元に戻せません。",
+    "created": "プロジェクトを作成しました",
+    "deleted": "プロジェクトを削除しました",
+    "createFailed": "作成に失敗しました",
+    "deleteFailed": "削除に失敗しました",
+    "noDescription": "説明はまだありません。プロジェクトを開いて注釈を始めましょう。",
+    "images": "画像",
+    "boxes": "ボックス",
+    "jobs": "学習",
+    "models": "モデル",
+    "pendingReview": "{{count}} 枚がレビュー待ち",
+    "reviewClear": "レビューは完了しています",
+    "open": "プロジェクトを開く",
+    "empty": "プロジェクトがありません",
+    "emptyHint": "プロジェクトを作成して、データセットとモデルを分けて管理します。",
+    "createTitle": "プロジェクト作成",
+    "name": "名前",
+    "namePlaceholder": "例：倉庫の安全装備",
+    "description": "説明",
+    "descriptionPlaceholder": "何を検出しますか？対象シーンやデータ源は？",
+    "categories": "既定カテゴリ",
+    "categoriesPlaceholder": "person, helmet, vest",
+    "categoriesHint": "カンマ区切り。注釈ワークスペースに自動入力されます。",
+    "create": "作成"
+  },
+  "project": {
+    "tabs": {
+      "annotate": "注釈",
+      "review": "レビュー",
+      "datasets": "データセット",
+      "training": "学習",
+      "models": "モデル",
+      "validation": "検証"
+    },
+    "classicWorkspace": "クラシックワークスペース",
+    "backToAnnotation": "注釈に戻る"
+  },
+  "review": {
+    "title": "レビュー",
+    "subtitle": "自動注釈を確認し、必要ならワークスペースで修正して承認または却下します。",
+    "queue": "レビュー待ち",
+    "items": "枚",
+    "pending": "保留",
+    "accepted": "承認",
+    "rejected": "却下",
+    "allProjects": "すべてのプロジェクト",
+    "boxes": "ボックス",
+    "acceptAll": "すべて承認",
+    "rejectAll": "すべて却下",
+    "rejectAllConfirm": "表示中のすべての画像を却下しますか？",
+    "batchPartial": "{{count}} 枚の更新に失敗しました",
+    "allAccepted": "すべて承認しました",
+    "allRejected": "すべて却下しました",
+    "actionFailed": "レビュー操作に失敗しました",
+    "emptyQueue": "レビュー対象がありません",
+    "emptyQueueHint": "新しい検出結果が自動的に表示されます。",
+    "selectItem": "画像を選択",
+    "selectItemHint": "左のキューから画像を選んでボックスを確認します。",
+    "openInWorkspace": "ワークスペースを開く",
+    "accept": "承認",
+    "reject": "却下",
+    "categories": "カテゴリ",
+    "imageSize": "画像サイズ",
+    "elapsed": "推論時間",
+    "noBoxes": "ボックスはありません。",
+    "noTagMatch": "選択したタグに一致する画像はありません。",
+    "annotations": "注釈",
+    "manualHint": "「描画」に切り替え、クラスを選んで画像上でドラッグします",
+    "boxAdded": "ボックスを追加しました",
+    "boxDeleted": "ボックスを削除しました",
+    "boxFailed": "ボックスの追加に失敗しました",
+    "deleteBoxFailed": "ボックスの削除に失敗しました",
+    "redetected": "再検出しました。更新されたボックスを確認してください。",
+    "redetectFailed": "再検出に失敗しました",
+    "selectAll": "すべて選択",
+    "selectedCount": "{{count}} 件選択",
+    "acceptSelected": "選択を承認",
+    "rejectSelected": "選択を却下"
+  },
+  "datasets": {
+    "title": "データセット",
+    "subtitle": "注釈レコードを確認し、プロジェクトで絞り込み、学習用形式で書き出します。",
+    "images": "画像",
+    "records": "注釈レコード",
+    "review": "レビュー",
+    "created": "作成日時",
+    "classes": "クラス",
+    "export": "書き出し",
+    "exportAll": "データセットを書き出す",
+    "exportSelected": "選択を書き出す（{{count}}）",
+    "downloaded": "データセットを書き出しました",
+    "downloadFailed": "書き出しに失敗しました",
+    "import": "データセットを読み込む",
+    "deleted": "レコードを削除しました",
+    "deleteFailed": "削除に失敗しました",
+    "deleteConfirm": "この注釈レコードを削除しますか？",
+    "deleteSelectedConfirm": "選択した {{count}} 件を削除しますか？",
+    "empty": "注釈レコードがありません",
+    "emptyHint": "注釈ワークスペースで画像を検出・注釈すると表示されます。",
+    "noClasses": "クラスはまだありません",
+    "yoloSeg": "YOLO セグメンテーション",
+    "image": "画像",
+    "categories": "カテゴリ",
+    "boxes": "ボックス",
+    "noTagMatch": "選択したタグに一致するレコードはありません。"
+  },
+  "training": {
+    "title": "学習",
+    "subtitle": "レビュー済み画像を選び、YOLO を設定して、このプロジェクトの学習を管理します。",
+    "datasetReadiness": "データ準備",
+    "reviewHint": "{{count}} 枚がレビュー待ちです。今も学習できますが、先にレビューすると品質が上がります。",
+    "readyHint": "すべてレビュー済みです。学習を開始できます。",
+    "tipsTitle": "学習のヒント",
+    "tip1": "クラスごとに 20 枚以上を用意し、実シーンを分割に反映します。",
+    "tip2": "小さいモデルで基準を作り、必要に応じて拡大します。",
+    "tip3": "ラベル確認や外部学習用にデータセットを書き出せます。",
+    "projectScoped": "学習ジョブはプロジェクト {{id}} に限定されます。",
+    "status": {
+      "pending": "待機中",
+      "running": "学習中",
+      "completed": "完了",
+      "failed": "失敗",
+      "cancelled": "キャンセル"
+    },
+    "cancelled": "ジョブをキャンセルしました",
+    "cancelFailed": "キャンセルに失敗しました",
+    "deleted": "ジョブを削除しました",
+    "deleteFailed": "削除に失敗しました",
+    "deleteConfirm": "この学習ジョブとモデルファイルを削除しますか？"
+  },
+  "models": {
+    "title": "モデル",
+    "subtitle": "学習済み YOLO モデルを確認・書き出し、すぐに検証できます。",
+    "total": "{{count}} ジョブ",
+    "ready": "{{count}} 利用可能",
+    "empty": "学習済みモデルがありません",
+    "emptyHint": "学習を完了すると .pt と ONNX をダウンロードできます。",
+    "precision": "精度",
+    "recall": "再現率",
+    "dataset": "データセット",
+    "validate": "検証"
+  },
+  "settings": {
+    "title": "設定",
+    "subtitle": "ランタイム、デバイス、ローカルモデル、言語、外観。",
+    "runtime": "ランタイム",
+    "runtimeHint": "推論と学習は同じデバイスを使います。auto は最適なバックエンドを選びます。",
+    "device": "デバイス",
+    "available": "利用可能なデバイス",
+    "noGpu": "CPU のみ",
+    "gpuReady": "GPU 利用可能",
+    "cpuOnly": "CPU で実行中",
+    "provider": "Jev プロバイダ",
+    "mode": "モード",
+    "annotationOnly": "注釈のみ",
+    "fullMode": "フルワークフロー",
+    "trainingEnabled": "学習有効",
+    "trainingDisabled": "学習無効",
+    "models": "ローカルモデル",
+    "visionModel": "LocateAnything / Jev",
+    "preferences": "環境設定",
+    "theme": "テーマ",
+    "deviceSaved": "デバイスを更新しました",
+    "saveFailed": "設定の更新に失敗しました",
+    "guideTitle": "ガイド",
+    "guideHint": "初回オンボーディングガイドを再表示します。",
+    "showGuide": "オンボーディングを表示",
+    "showFullSteps": "全ワークフロー"
+  },
+  "onboarding": {
+    "badge": "初回ガイド",
+    "step": "ステップ {{current}} / {{total}}",
+    "skip": "ガイドをスキップ",
+    "back": "戻る",
+    "next": "次へ",
+    "finish": "AutoYOLO を始める",
+    "steps": {
+      "intro": {
+        "title": "ようこそ",
+        "desc": "画像から検証済みのローカル YOLO モデルまでの流れを確認します。"
+      },
+      "project": {
+        "title": "プロジェクトと対象クラスを作成",
+        "desc": "画像、レビュー、データセット、モデルをプロジェクトごとに管理します。"
+      },
+      "annotate": {
+        "title": "画像/動画を読み込んで注釈",
+        "desc": "検出モデルとカテゴリを選び、検出後にボックスを修正します。"
+      },
+      "review": {
+        "title": "レビューと一括修正",
+        "desc": "タグで絞り込み、再検出・手動注釈・一括承認/却下を行います。"
+      },
+      "dataset": {
+        "title": "データセットを絞り込み、必要に応じて書き出す",
+        "desc": "カテゴリタグで絞り込み、YOLO/COCO/VOC/CreateML を書き出します。"
+      },
+      "training": {
+        "title": "YOLO 学習を設定して実行",
+        "desc": "レビュー済み画像、モデル、分割を選んで学習を開始します。"
+      },
+      "validation": {
+        "title": "実データでモデルを検証",
+        "desc": "学習済みまたは .pt モデルを選び、専用ページで画像/動画を検証します。"
+      },
+      "done": {
+        "title": "モデルをダウンロードして再利用",
+        "desc": ".pt と ONNX をダウンロードするか、検証ページで確認します。"
+      }
+    },
+    "mock": {
+      "projectName": "倉庫の安全",
+      "domain": "監視カメラ画像からヘルメット、ベスト、人を検出"
+    },
+    "mockNote1": "ここはモック表示です。実際のプロジェクトには影響しません。",
+    "mockNote2": "番号は主な操作やクリック位置を示します。",
+    "intro": {
+      "welcome": "AutoYOLO へようこそ",
+      "desc": "ローカルワークスペースで画像から検証済み YOLO モデルを作ります。",
+      "time": "注釈・学習から検証まで、コード不要。最短15分*で完了します。"
+    }
+  },
+  "fullSteps": {
+    "title": "全ワークフロー",
+    "open": "ページを開く",
+    "back": "アプリに戻る",
+    "steps": "ステップ",
+    "intro1": "画像を学習・検証可能なローカル YOLO モデルに変えます。",
+    "intro2": "プロジェクト、注釈、レビュー、書き出し、学習、検証、モデル提供まで、コードなしで完結。最短15分*で全体を完了できます。",
+    "workflow": {
+      "models": {
+        "title": "モデルを提供",
+        "desc": ".pt と ONNX をダウンロードするか、直接検証します。"
+      },
+      "classic": {
+        "title": "1MoreThing：クラシックワークスペース",
+        "desc": "従来のクラシックコンソールを使いたい場合も、切り替えて同じ画面でアップロード・学習・検証ができます。"
+      }
+    }
   }
 }

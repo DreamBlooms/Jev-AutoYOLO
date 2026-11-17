@@ -16,6 +16,7 @@ from .api.routes.detection import router as detection_router
 from .api.routes.export import router as export_router
 from .api.routes.import_dataset import router as import_router
 from .api.routes.predict import router as predict_router
+from .api.routes.projects import router as projects_router
 from .api.routes.train import router as train_router
 from .api.routes.video import router as video_router
 from .core.config import settings
@@ -118,6 +119,7 @@ async def general_exception_handler(_request: Request, exc: Exception) -> JSONRe
     )
 
 
+app.include_router(projects_router)
 app.include_router(detection_router)
 app.include_router(export_router)
 app.include_router(import_router)
@@ -148,6 +150,18 @@ def switch_inference_device(body: DeviceSelection) -> dict:
         raise HTTPException(400, detail=str(exc)) from exc
 
 
+class SPAStaticFiles(StaticFiles):
+    """Serve index.html for client-side routes while preserving API 404s."""
+
+    async def get_response(self, path: str, scope):
+        try:
+            return await super().get_response(path, scope)
+        except StarletteHTTPException as exc:
+            if exc.status_code == 404 and not scope.get("path", "").startswith("/api/"):
+                return await super().get_response("index.html", scope)
+            raise
+
+
 # Mount frontend conditionally (for single-container deployments)
 if os.path.exists("../frontend/dist"):
-    app.mount("/", StaticFiles(directory="../frontend/dist", html=True), name="frontend")
+    app.mount("/", SPAStaticFiles(directory="../frontend/dist", html=True), name="frontend")

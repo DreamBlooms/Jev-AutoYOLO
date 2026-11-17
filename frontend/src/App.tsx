@@ -1,11 +1,27 @@
 import { useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Route, Routes, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+
+import { Layout } from "@/components/Layout";
 import { Toaster } from "@/components/ui/sonner";
-import { ErrorBoundary } from "./components/ErrorBoundary";
-import { Layout } from "./components/Layout";
-import { Home } from "./pages/Home";
-import { useAppStore } from "./store/useAppStore";
-import { getAppConfig } from "./services/api";
+import { Button } from "@/components/ui/button";
+import { Empty } from "@/components/ui/empty";
+import { ClassicWorkspacePage } from "@/pages/ClassicWorkspacePage";
+import { DatasetsPage } from "@/pages/DatasetsPage";
+import { FullStepsPage } from "@/pages/FullStepsPage";
+import { ModelsPage } from "@/pages/ModelsPage";
+import { ProjectDetailPage } from "@/pages/ProjectDetailPage";
+import { ProjectsPage } from "@/pages/ProjectsPage";
+import { ReviewPage } from "@/pages/ReviewPage";
+import { SettingsPage } from "@/pages/SettingsPage";
+import { getAppConfig } from "@/services/api";
+import { useAppStore } from "@/store/useAppStore";
+
+function NotFound() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  return <Empty title="404" description={t("common.notFound")} action={<Button onClick={() => navigate("/")}>{t("nav.projects")}</Button>} />;
+}
 
 export default function App() {
   const setAnnotationOnly = useAppStore((s) => s.setAnnotationOnly);
@@ -29,7 +45,7 @@ export default function App() {
         setGpuName(config.gpuName);
       })
       .catch(() => {
-        // Keep the default (full) mode when the config endpoint is unavailable.
+        // Keep full mode when the config endpoint is unavailable.
       })
       .finally(() => setConfigLoaded(true));
   }, [
@@ -46,13 +62,19 @@ export default function App() {
   return (
     <>
       <Toaster position="top-center" richColors closeButton />
-      <ErrorBoundary>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Home />} />
-          </Route>
-        </Routes>
-      </ErrorBoundary>
+      <Routes>
+        <Route path="/projects/:projectId/classic" element={<ClassicWorkspacePage />} />
+        <Route path="/full-steps" element={<FullStepsPage />} />
+        <Route element={<Layout />}>
+          <Route path="/" element={<ProjectsPage />} />
+          <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
+          <Route path="/review" element={<ReviewPage />} />
+          <Route path="/datasets" element={<DatasetsPage />} />
+          <Route path="/models" element={<ModelsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
     </>
   );
 }

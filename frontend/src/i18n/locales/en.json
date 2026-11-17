@@ -1,7 +1,7 @@
 {
   "common": {
-    "annotate": "Jev Annotate",
-    "validate": "YOLO Validate",
+    "annotate": "Annotate",
+    "validate": "Validate",
     "image": "Image",
     "video": "Video",
     "categories": "Target Categories",
@@ -24,7 +24,16 @@
     "mask": "Mask",
     "themeLight": "Switch to light mode",
     "themeDark": "Switch to dark mode",
-    "themeSystem": "Follow system theme"
+    "themeSystem": "Follow system theme",
+    "language": "Language",
+    "notFound": "Page not found",
+    "refresh": "Refresh",
+    "light": "Light",
+    "dark": "Dark",
+    "back": "Back",
+    "confirm": "Confirm",
+    "tags": "Tags",
+    "clearFilter": "Clear"
   },
   "home": {
     "detectBtnImage": "Start Detection",
@@ -42,7 +51,8 @@
     "placeholderDefault": "Upload image/video and enter target categories, then click \"Start Detection\"",
     "yoloValidation": "YOLO Validation",
     "useSam2": "Enable SAM2 Segmentation",
-    "useSam3Seg": "Enable SAM3 Segmentation"
+    "useSam3Seg": "Enable SAM3 Segmentation",
+    "placeholderValidation": "Select a trained or uploaded .pt model, upload image/video, then click “YOLO Validation”."
   },
   "filter": {
     "filterMode": "Filter Mode",
@@ -369,6 +379,258 @@
     "notConfigured": "Not configured"
   },
   "app": {
-    "tagline": "Auto-labeling · YOLO training · Local deployment"
+    "tagline": "Multi-project annotation · YOLO training · Local deployment"
+  },
+  "nav": {
+    "projects": "Projects",
+    "review": "Review",
+    "datasets": "Datasets",
+    "models": "Models",
+    "settings": "Settings"
+  },
+  "projects": {
+    "title": "Projects",
+    "subtitle": "Organize images, annotations, datasets, and trained models into independent workspaces.",
+    "new": "New project",
+    "workspace": "Workspace",
+    "deleteConfirm": "Delete “{{name}}” and all of its data? This cannot be undone.",
+    "created": "Project created",
+    "deleted": "Project deleted",
+    "createFailed": "Failed to create project",
+    "deleteFailed": "Failed to delete project",
+    "noDescription": "No description yet. Open the project to start annotating.",
+    "images": "Images",
+    "boxes": "Boxes",
+    "jobs": "Jobs",
+    "models": "Models",
+    "pendingReview": "{{count}} images waiting for review",
+    "reviewClear": "Review queue is complete",
+    "open": "Open project",
+    "empty": "No projects yet",
+    "emptyHint": "Create a project to keep each dataset and model family separate.",
+    "createTitle": "Create project",
+    "name": "Name",
+    "namePlaceholder": "e.g. Warehouse safety equipment",
+    "description": "Description",
+    "descriptionPlaceholder": "What will this project detect? Which scenes or data sources does it cover?",
+    "categories": "Default categories",
+    "categoriesPlaceholder": "person, helmet, vest",
+    "categoriesHint": "Separate categories with commas. They prefill the annotation workspace.",
+    "create": "Create project"
+  },
+  "project": {
+    "tabs": {
+      "annotate": "Annotate",
+      "review": "Review",
+      "datasets": "Datasets",
+      "training": "Training",
+      "models": "Models",
+      "validation": "Validation"
+    },
+    "classicWorkspace": "Classic workspace",
+    "backToAnnotation": "Back to annotation"
+  },
+  "review": {
+    "title": "Review",
+    "subtitle": "Inspect auto-labeled results, fix boxes in the workspace, then accept or reject each image.",
+    "queue": "Review queue",
+    "items": "images",
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "rejected": "Rejected",
+    "allProjects": "All projects",
+    "boxes": "Boxes",
+    "acceptAll": "Accept all",
+    "rejectAll": "Reject all",
+    "rejectAllConfirm": "Reject every image currently listed?",
+    "batchPartial": "{{count}} images failed to update",
+    "allAccepted": "Queue accepted",
+    "allRejected": "Queue rejected",
+    "actionFailed": "Review action failed",
+    "emptyQueue": "Nothing to review",
+    "emptyQueueHint": "New detections appear here automatically.",
+    "selectItem": "Select an image",
+    "selectItemHint": "Pick an image from the queue to inspect its boxes.",
+    "openInWorkspace": "Open workspace",
+    "accept": "Accept",
+    "reject": "Reject",
+    "categories": "Categories",
+    "imageSize": "Image size",
+    "elapsed": "Inference time",
+    "noBoxes": "No boxes in this image.",
+    "noTagMatch": "No images match the selected tags.",
+    "annotations": "Annotations",
+    "manualHint": "Switch to Draw, pick a class, then drag on the image",
+    "boxAdded": "Box added",
+    "boxDeleted": "Box deleted",
+    "boxFailed": "Failed to add box",
+    "deleteBoxFailed": "Failed to delete box",
+    "redetected": "Re-detected. Review the updated boxes.",
+    "redetectFailed": "Re-detection failed",
+    "selectAll": "Select all",
+    "selectedCount": "{{count}} selected",
+    "acceptSelected": "Accept selected",
+    "rejectSelected": "Reject selected"
+  },
+  "datasets": {
+    "title": "Datasets",
+    "subtitle": "Review annotation records, filter by project, and export training-ready datasets.",
+    "images": "images",
+    "records": "Annotation records",
+    "review": "Review",
+    "created": "Created",
+    "classes": "Classes",
+    "export": "Export",
+    "exportAll": "Export dataset",
+    "exportSelected": "Export selected ({{count}})",
+    "downloaded": "Dataset downloaded",
+    "downloadFailed": "Dataset download failed",
+    "import": "Import dataset",
+    "deleted": "Record deleted",
+    "deleteFailed": "Failed to delete record",
+    "deleteConfirm": "Delete this annotation record?",
+    "deleteSelectedConfirm": "Delete {{count}} selected records?",
+    "empty": "No annotation records",
+    "emptyHint": "Use the annotation workspace to detect and label images.",
+    "noClasses": "No classes yet",
+    "yoloSeg": "YOLO Segmentation",
+    "image": "Image",
+    "categories": "Categories",
+    "boxes": "Boxes",
+    "noTagMatch": "No records match the selected tags."
+  },
+  "training": {
+    "title": "Training",
+    "subtitle": "Choose reviewed images, configure a YOLO run, and track every job in this project.",
+    "datasetReadiness": "Dataset readiness",
+    "reviewHint": "{{count}} images are still pending review. You can train now, but reviewing first improves label quality.",
+    "readyHint": "All images are reviewed. The project is ready for a clean training run.",
+    "tipsTitle": "Before you train",
+    "tip1": "Use 20+ images per class and keep train/validation splits representative.",
+    "tip2": "Start from a smaller variant for a quick baseline, then scale up.",
+    "tip3": "Download the dataset if you want to inspect labels or train externally.",
+    "projectScoped": "Jobs are scoped to project {{id}}.",
+    "status": {
+      "pending": "Pending",
+      "running": "Running",
+      "completed": "Completed",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "cancelled": "Job cancelled",
+    "cancelFailed": "Failed to cancel job",
+    "deleted": "Job deleted",
+    "deleteFailed": "Failed to delete job",
+    "deleteConfirm": "Delete this training job and its model file?"
+  },
+  "models": {
+    "title": "Models",
+    "subtitle": "Browse trained YOLO artifacts, export them, and jump straight into validation.",
+    "total": "{{count}} jobs",
+    "ready": "{{count}} ready",
+    "empty": "No trained models",
+    "emptyHint": "Complete a training job to produce downloadable .pt and ONNX artifacts.",
+    "precision": "Precision",
+    "recall": "Recall",
+    "dataset": "Dataset",
+    "validate": "Validate"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Runtime, devices, local models, language, and appearance.",
+    "runtime": "Runtime",
+    "runtimeHint": "Inference and training share the selected device. Auto picks the best available backend.",
+    "device": "Device preference",
+    "available": "Available devices",
+    "noGpu": "CPU only",
+    "gpuReady": "GPU ready",
+    "cpuOnly": "Running on CPU",
+    "provider": "Jev provider",
+    "mode": "Mode",
+    "annotationOnly": "Annotation only",
+    "fullMode": "Full workflow",
+    "trainingEnabled": "Training enabled",
+    "trainingDisabled": "Training disabled",
+    "models": "Local models",
+    "visionModel": "LocateAnything / Jev",
+    "preferences": "Preferences",
+    "theme": "Theme",
+    "deviceSaved": "Device updated",
+    "saveFailed": "Failed to update setting",
+    "guideTitle": "Guides",
+    "guideHint": "Replay the first-time onboarding tour.",
+    "showGuide": "Show onboarding",
+    "showFullSteps": "Full workflow"
+  },
+  "onboarding": {
+    "badge": "First-time guide",
+    "step": "Step {{current}} of {{total}}",
+    "skip": "Skip guide",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Start using AutoYOLO",
+    "steps": {
+      "intro": {
+        "title": "Welcome",
+        "desc": "Learn the full path from raw images to a validated local YOLO model."
+      },
+      "project": {
+        "title": "Create a project and set target classes",
+        "desc": "Keep each dataset, review queue, and model family in its own project."
+      },
+      "annotate": {
+        "title": "Upload images or video and annotate",
+        "desc": "Choose a detector, add target categories, then detect and correct boxes."
+      },
+      "review": {
+        "title": "Review and batch-correct annotations",
+        "desc": "Use tag filters, re-detect, manual boxes, and batch accept/reject."
+      },
+      "dataset": {
+        "title": "Filter and optionally export a dataset",
+        "desc": "Filter by category tag, inspect records, and export YOLO, COCO, VOC, or CreateML."
+      },
+      "training": {
+        "title": "Configure and run YOLO training",
+        "desc": "Select reviewed images, choose a YOLO variant, set the split, and start training."
+      },
+      "validation": {
+        "title": "Validate the model with real data",
+        "desc": "Select a trained or uploaded .pt model, then validate images or video on its own page."
+      },
+      "done": {
+        "title": "Download and reuse the model",
+        "desc": "Download .pt and ONNX artifacts or send the model to the validation page."
+      }
+    },
+    "mock": {
+      "projectName": "Warehouse Safety",
+      "domain": "Security camera frames; detect helmet, vest, and person"
+    },
+    "mockNote1": "All content here is a mock demo; real projects are untouched.",
+    "mockNote2": "Numbered markers show key actions or click targets.",
+    "intro": {
+      "welcome": "Welcome to AutoYOLO",
+      "desc": "Turn raw images into a trained, validated YOLO model in one local workspace.",
+      "time": "From annotation and training to validation, no coding required—all done in as little as fifteen minutes.*"
+    }
+  },
+  "fullSteps": {
+    "title": "The complete workflow",
+    "open": "Open page",
+    "back": "Back to app",
+    "steps": "steps",
+    "intro1": "Turn raw images into a trainable, verifiable local YOLO model.",
+    "intro2": "From project, annotation, review, export, training, and validation to model delivery, complete the entire workflow without coding—all in as little as fifteen minutes.*",
+    "workflow": {
+      "models": {
+        "title": "Deliver models",
+        "desc": "Download .pt and ONNX artifacts, or validate the model directly."
+      },
+      "classic": {
+        "title": "1MoreThing: Classic workspace",
+        "desc": "Prefer the original classic console? You can still switch back and upload, train, and validate on the same page."
+      }
+    }
   }
 }

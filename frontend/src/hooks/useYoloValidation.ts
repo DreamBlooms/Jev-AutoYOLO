@@ -63,6 +63,7 @@ export function useYoloValidation() {
         const data = json.data;
         return {
           id: `validate-${Date.now()}`,
+          projectId: useAppStore.getState().currentProjectId,
           imageName: file.name,
           categories: [],
           modelName: token ? t("validationSettings.uploadedModelLabel") : activeVariant || "YOLO",
@@ -70,6 +71,7 @@ export function useYoloValidation() {
           imageWidth: data.imageWidth,
           imageHeight: data.imageHeight,
           status: "completed",
+          reviewStatus: "pending",
           elapsedMs: null,
           filterMode: null,
           filterNmsIou: null,

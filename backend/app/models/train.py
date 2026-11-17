@@ -17,6 +17,9 @@ class TrainingJob(Base):
         primary_key=True,
         default=uuid.uuid4,
     )
+    project_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid(as_uuid=True), ForeignKey("projects.id", ondelete="SET NULL"), nullable=True
+    )
     name: Mapped[str | None] = mapped_column(String(128), nullable=True, default=None)
     model_variant: Mapped[str] = mapped_column(String(32), default="yolo11n")
     epochs: Mapped[int] = mapped_column(Integer, default=100)
@@ -49,7 +52,10 @@ class TrainingJob(Base):
         cascade="all, delete-orphan",
     )
 
-    __table_args__ = (Index("ix_training_jobs_status", "status"),)
+    __table_args__ = (
+        Index("ix_training_jobs_status", "status"),
+        Index("ix_training_jobs_project_id", "project_id"),
+    )
 
     @property
     def detection_ids(self) -> list[str]:

@@ -1,7 +1,9 @@
+import { useAppStore } from "@/store/useAppStore";
 export function useDetectionListInfiniteQuery() {
+  const projectId = useAppStore((s) => s.currentProjectId);
   return useInfiniteQuery({
-    queryKey: ["detections"],
-    queryFn: ({ pageParam }) => listDetections(pageParam, PAGE_SIZE_DETECTIONS),
+    queryKey: ["detections", projectId],
+    queryFn: ({ pageParam }) => listDetections(pageParam, PAGE_SIZE_DETECTIONS, projectId ?? undefined),
     getNextPageParam: (lastPage, allPages) => {
       const totalFetched = allPages.reduce((sum, p) => sum + p.items.length, 0);
       return totalFetched < lastPage.total ? allPages.length + 1 : undefined;
@@ -16,6 +18,7 @@ const PAGE_SIZE_DETECTIONS = 10000;
 export function useDetectMutation() {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const projectId = useAppStore((s) => s.currentProjectId);
   return useMutation({
     mutationFn: ({
       file,
@@ -63,6 +66,7 @@ export function useDetectMutation() {
         extraInstructions,
         categoryInstructions,
         signal,
+        projectId ?? undefined,
       ),
     onMutate: ({ useSam2 }) => {
       qc.invalidateQueries({ queryKey: ["model-status"] });

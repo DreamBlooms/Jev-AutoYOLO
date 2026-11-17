@@ -1,8 +1,12 @@
+import { useNavigate } from "react-router-dom";
+
 import { HoverPopover, Modal, Popconfirm } from "@/components/ui/ant-compat";
+import { useAppStore } from "@/store/useAppStore";
 import { StatusBadge } from "../StatusBadge";
 
 export function TrainingJobItem({ job }: { job: TrainingJob }) {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [cancelling, setCancelling] = useState(false);
   const [chartOpen, setChartOpen] = useState(false);
@@ -248,11 +252,10 @@ export function TrainingJobItem({ job }: { job: TrainingJob }) {
                 </a>
                 <button
                   onClick={() => {
-                    window.dispatchEvent(
-                      new CustomEvent("yolo-validate", {
-                        detail: { jobId: job.id, modelVariant: job.modelVariant },
-                      }),
-                    );
+                    const projectId = job.projectId || useAppStore.getState().currentProjectId;
+                    navigate(projectId
+                      ? `/projects/${projectId}?tab=validation&validateJob=${job.id}`
+                      : "/models");
                   }}
                   className="text-green-600 hover:underline font-medium"
                 >

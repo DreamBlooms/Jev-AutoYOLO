@@ -22,6 +22,7 @@ interface Props {
 export function TrainingPanel({ detections, total, hasNextPage, isFetchingNextPage, fetchNextPage }: Props) {
   const { t } = useTranslation();
   const isTraining = useAppStore((s) => s.isTraining);
+  const projectId = useAppStore((s) => s.currentProjectId);
   const setIsTraining = useAppStore((s) => s.setIsTraining);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [importModalOpen, setImportModalOpen] = useState(false);
@@ -53,8 +54,8 @@ export function TrainingPanel({ detections, total, hasNextPage, isFetchingNextPa
   const currentVariant = variant in variantOptions ? variant : (variantKeys[0] ?? variant);
 
   const jobsQuery = useInfiniteQuery({
-    queryKey: ["training-jobs"],
-    queryFn: ({ pageParam }) => fetchTrainingJobs(pageParam, 30),
+    queryKey: ["training-jobs", projectId],
+    queryFn: ({ pageParam }) => fetchTrainingJobs(pageParam, 30, projectId ?? undefined),
     getNextPageParam: (lastPage, allPages) => {
       const totalFetched = allPages.reduce((sum, p) => sum + p.items.length, 0);
       return totalFetched < lastPage.total ? allPages.length + 1 : undefined;
@@ -116,6 +117,7 @@ export function TrainingPanel({ detections, total, hasNextPage, isFetchingNextPa
     setIsTraining(true);
     const p = splitPresets[splitPreset] ?? { train: 0.7, val: 0.2 };
     trainMut.mutate({
+      projectId: projectId ?? undefined,
       detectionIds: [...selected],
       modelVariant: currentVariant,
       epochs,
@@ -143,7 +145,7 @@ export function TrainingPanel({ detections, total, hasNextPage, isFetchingNextPa
 
   const handleDownloadAllYoloSeg = async () => {
     try {
-      const blob = await exportAll("yolo-seg");
+      const blob = await exportAll("yolo-seg", projectId ?? undefined);
       downloadBlob(blob, "YOLO_Seg_all_dataset.zip");
       toast.success(t("trainingPanel.datasetDownloaded"));
     } catch {

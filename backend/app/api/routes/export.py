@@ -10,6 +10,7 @@ from starlette.responses import Response
 
 from ...core.database import get_db
 from ...schemas.detection import ExportAllIn, ExportBatchIn
+from ...services.projects import resolve_project_id
 from ...services.export import FORMAT_LABELS, export_all, export_batch, export_single
 
 logger = logging.getLogger(__name__)
@@ -56,7 +57,8 @@ def download_all_detections(
 ) -> Response:
     fmt = body.format if body else "yolo"
     try:
-        data = export_all(db, format=fmt)
+        project_uuid = resolve_project_id(db, body.project_id) if body and body.project_id else None
+        data = export_all(db, format=fmt, project_id=project_uuid)
     except ValueError as exc:
         raise HTTPException(400, detail=str(exc)) from exc
 

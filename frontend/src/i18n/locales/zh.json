@@ -1,7 +1,7 @@
 {
   "common": {
-    "annotate": "Jev 标注",
-    "validate": "YOLO 验证",
+    "annotate": "标注",
+    "validate": "验证",
     "image": "图片",
     "video": "视频",
     "categories": "目标类别",
@@ -24,7 +24,16 @@
     "mask": "Mask",
     "themeLight": "切换到亮色模式",
     "themeDark": "切换到暗色模式",
-    "themeSystem": "跟随系统主题"
+    "themeSystem": "跟随系统主题",
+    "language": "语言",
+    "notFound": "页面不存在",
+    "refresh": "刷新",
+    "light": "亮色",
+    "dark": "暗色",
+    "back": "返回",
+    "confirm": "确认",
+    "tags": "标签",
+    "clearFilter": "清除"
   },
   "home": {
     "detectBtnImage": "开始检测",
@@ -42,7 +51,8 @@
     "placeholderDefault": "上传图片/视频并输入目标类别，点击“开始检测”",
     "yoloValidation": "YOLO 验证",
     "useSam2": "启用 SAM2 分割（生成精确 mask）",
-    "useSam3Seg": "启用 SAM3 分割（生成精确 mask）"
+    "useSam3Seg": "启用 SAM3 分割（生成精确 mask）",
+    "placeholderValidation": "选择已训练模型或上传 .pt 模型，上传图片/视频后点击「YOLO 验证」。"
   },
   "filter": {
     "filterMode": "过滤模式",
@@ -369,6 +379,258 @@
     "notConfigured": "未配置"
   },
   "app": {
-    "tagline": "自动标注 · YOLO 训练 · 本地部署"
+    "tagline": "多项目标注 · YOLO 训练 · 本地部署"
+  },
+  "nav": {
+    "projects": "项目",
+    "review": "审核",
+    "datasets": "数据集",
+    "models": "模型",
+    "settings": "设置"
+  },
+  "projects": {
+    "title": "项目",
+    "subtitle": "把图片、标注、数据集和训练模型组织成彼此独立的工作空间。",
+    "new": "新建项目",
+    "workspace": "工作空间",
+    "deleteConfirm": "删除「{{name}}」及其全部数据？此操作无法撤销。",
+    "created": "项目已创建",
+    "deleted": "项目已删除",
+    "createFailed": "创建项目失败",
+    "deleteFailed": "删除项目失败",
+    "noDescription": "暂无描述。打开项目开始标注。",
+    "images": "图片",
+    "boxes": "标注框",
+    "jobs": "训练任务",
+    "models": "模型",
+    "pendingReview": "{{count}} 张图片待审核",
+    "reviewClear": "审核队列已完成",
+    "open": "打开项目",
+    "empty": "还没有项目",
+    "emptyHint": "创建项目，让不同数据集和模型系列彼此隔离。",
+    "createTitle": "创建项目",
+    "name": "名称",
+    "namePlaceholder": "例如：仓库安全装备",
+    "description": "描述",
+    "descriptionPlaceholder": "这个项目要检测什么？覆盖哪些场景或数据源？",
+    "categories": "默认类别",
+    "categoriesPlaceholder": "person, helmet, vest",
+    "categoriesHint": "用逗号分隔类别，标注工作台会自动带入。",
+    "create": "创建项目"
+  },
+  "project": {
+    "tabs": {
+      "annotate": "标注",
+      "review": "审核",
+      "datasets": "数据集",
+      "training": "训练",
+      "models": "模型",
+      "validation": "验证"
+    },
+    "classicWorkspace": "经典工作台",
+    "backToAnnotation": "返回标注"
+  },
+  "review": {
+    "title": "审核",
+    "subtitle": "检查自动标注结果，需要时回到工作台修正标注框，然后接受或拒绝图片。",
+    "queue": "审核队列",
+    "items": "张图片",
+    "pending": "待审核",
+    "accepted": "已接受",
+    "rejected": "已拒绝",
+    "allProjects": "全部项目",
+    "boxes": "标注框",
+    "acceptAll": "全部接受",
+    "rejectAll": "全部拒绝",
+    "rejectAllConfirm": "拒绝当前列表中的全部图片？",
+    "batchPartial": "{{count}} 张图片更新失败",
+    "allAccepted": "队列已接受",
+    "allRejected": "队列已拒绝",
+    "actionFailed": "审核操作失败",
+    "emptyQueue": "暂无可审核内容",
+    "emptyQueueHint": "新的检测结果会自动出现在这里。",
+    "selectItem": "选择一张图片",
+    "selectItemHint": "从左侧队列选择图片，查看它的标注框。",
+    "openInWorkspace": "打开工作台",
+    "accept": "接受",
+    "reject": "拒绝",
+    "categories": "类别",
+    "imageSize": "图片尺寸",
+    "elapsed": "推理耗时",
+    "noBoxes": "这张图片没有标注框。",
+    "noTagMatch": "没有符合所选标签的图片。",
+    "annotations": "标注",
+    "manualHint": "切换到「标注」模式，选择类别后在图片上拖拽",
+    "boxAdded": "标注框已添加",
+    "boxDeleted": "标注框已删除",
+    "boxFailed": "添加标注框失败",
+    "deleteBoxFailed": "删除标注框失败",
+    "redetected": "已重新识别，请检查新的标注框",
+    "redetectFailed": "重新识别失败",
+    "selectAll": "全选",
+    "selectedCount": "已选 {{count}} 项",
+    "acceptSelected": "接受所选",
+    "rejectSelected": "拒绝所选"
+  },
+  "datasets": {
+    "title": "数据集",
+    "subtitle": "查看标注记录、按项目筛选，并导出可直接训练的格式。",
+    "images": "图片",
+    "records": "标注记录",
+    "review": "审核",
+    "created": "创建时间",
+    "classes": "类别",
+    "export": "导出",
+    "exportAll": "导出数据集",
+    "exportSelected": "导出所选（{{count}}）",
+    "downloaded": "数据集已下载",
+    "downloadFailed": "数据集下载失败",
+    "import": "导入数据集",
+    "deleted": "记录已删除",
+    "deleteFailed": "删除记录失败",
+    "deleteConfirm": "删除这条标注记录？",
+    "deleteSelectedConfirm": "删除选中的 {{count}} 条记录？",
+    "empty": "没有标注记录",
+    "emptyHint": "在标注工作台检测和标注图片后，记录会出现在这里。",
+    "noClasses": "暂无类别",
+    "yoloSeg": "YOLO 分割",
+    "image": "图片",
+    "categories": "类别",
+    "boxes": "标注框",
+    "noTagMatch": "没有符合所选标签的记录。"
+  },
+  "training": {
+    "title": "训练",
+    "subtitle": "选择已审核图片、配置 YOLO 任务，并跟踪这个项目里的全部训练。",
+    "datasetReadiness": "数据准备度",
+    "reviewHint": "还有 {{count}} 张图片待审核。现在也可以训练，但先审核能提升标签质量。",
+    "readyHint": "所有图片都已审核，可以进行一次干净训练。",
+    "tipsTitle": "训练前建议",
+    "tip1": "每个类别至少准备 20 张图片，训练集和验证集要覆盖真实场景。",
+    "tip2": "先用较小规格跑基线，再逐步放大模型。",
+    "tip3": "需要检查标签或外部训练时，可以下载完整数据集。",
+    "projectScoped": "训练任务仅属于项目 {{id}}。",
+    "status": {
+      "pending": "等待中",
+      "running": "训练中",
+      "completed": "已完成",
+      "failed": "失败",
+      "cancelled": "已取消"
+    },
+    "cancelled": "任务已取消",
+    "cancelFailed": "取消任务失败",
+    "deleted": "任务已删除",
+    "deleteFailed": "删除任务失败",
+    "deleteConfirm": "删除这个训练任务及其模型文件？"
+  },
+  "models": {
+    "title": "模型",
+    "subtitle": "查看训练好的 YOLO 产物、导出模型，并直接进入验证。",
+    "total": "{{count}} 个任务",
+    "ready": "{{count}} 个可用",
+    "empty": "还没有训练好的模型",
+    "emptyHint": "完成一次训练后，这里会提供 .pt 和 ONNX 产物。",
+    "precision": "精确率",
+    "recall": "召回率",
+    "dataset": "数据集",
+    "validate": "验证"
+  },
+  "settings": {
+    "title": "设置",
+    "subtitle": "运行时、设备、本地模型、语言和外观。",
+    "runtime": "运行时",
+    "runtimeHint": "推理和训练共用当前设备，auto 会自动选择最佳后端。",
+    "device": "设备偏好",
+    "available": "可用设备",
+    "noGpu": "仅 CPU",
+    "gpuReady": "GPU 可用",
+    "cpuOnly": "使用 CPU",
+    "provider": "Jev 提供方",
+    "mode": "模式",
+    "annotationOnly": "仅标注",
+    "fullMode": "完整流程",
+    "trainingEnabled": "训练已启用",
+    "trainingDisabled": "训练已禁用",
+    "models": "本地模型",
+    "visionModel": "LocateAnything / Jev",
+    "preferences": "偏好设置",
+    "theme": "主题",
+    "deviceSaved": "设备已更新",
+    "saveFailed": "更新设置失败",
+    "guideTitle": "引导",
+    "guideHint": "重新查看首次使用向导。",
+    "showGuide": "查看使用引导",
+    "showFullSteps": "全流程展示"
+  },
+  "onboarding": {
+    "badge": "首次使用引导",
+    "step": "第 {{current}} / {{total}} 步",
+    "skip": "跳过引导",
+    "back": "上一步",
+    "next": "下一步",
+    "finish": "开始使用",
+    "steps": {
+      "intro": {
+        "title": "欢迎",
+        "desc": "从原始图片到可验证的本地 YOLO 模型，先了解完整流程。"
+      },
+      "project": {
+        "title": "创建项目并设置目标类别",
+        "desc": "每个项目独立管理图片、审核队列、数据集和模型。"
+      },
+      "annotate": {
+        "title": "上传图片或视频并完成标注",
+        "desc": "选择检测模型，添加目标类别，检测后修正标注框。"
+      },
+      "review": {
+        "title": "审核并批量修正标注",
+        "desc": "按标签筛选，重新识别、手动标注，并批量接受或拒绝。"
+      },
+      "dataset": {
+        "title": "筛选并可选导出数据集",
+        "desc": "按类别标签筛选记录，导出 YOLO、COCO、VOC 或 CreateML 数据集。"
+      },
+      "training": {
+        "title": "配置并运行 YOLO 训练",
+        "desc": "选择已审核图片、YOLO 规格和划分比例，然后开始训练。"
+      },
+      "validation": {
+        "title": "用真实数据验证测试模型",
+        "desc": "选择已训练或上传的 .pt 模型，在独立验证页测试图片或视频。"
+      },
+      "done": {
+        "title": "下载并复用训练模型",
+        "desc": "下载 .pt 和 ONNX 产物，或直接进入验证页测试。"
+      }
+    },
+    "mock": {
+      "projectName": "仓储安全",
+      "domain": "仓库监控画面，检测安全帽、反光衣和人员"
+    },
+    "mockNote1": "本内容均为 Mock 演示，不影响真实项目。",
+    "mockNote2": "数字标记表示关键操作或需要点击的位置。",
+    "intro": {
+      "welcome": "欢迎来到 AutoYOLO",
+      "desc": "在一个本地工作台里，把原始图片训练成可验证的 YOLO 模型。",
+      "time": "从标注、训练到验证，无需编码，最快十五分钟*全搞定。"
+    }
+  },
+  "fullSteps": {
+    "title": "全流程",
+    "open": "打开页面",
+    "back": "返回应用",
+    "steps": "个步骤",
+    "intro1": "把原始图片变成可训练、可验证的本地 YOLO 模型。",
+    "intro2": "从项目、标注、审核、导出、训练、验证到模型交付，无编码轻松完成完整流程，最快十五分钟*全搞定。",
+    "workflow": {
+      "models": {
+        "title": "交付模型",
+        "desc": "下载 .pt 和 ONNX 模型产物，或直接进入验证。"
+      },
+      "classic": {
+        "title": "1MoreThing：经典工作台",
+        "desc": "喜欢原版经典控制台？你依旧还可以切换，在同一页面里上传、训练和验证。"
+      }
+    }
   }
 }

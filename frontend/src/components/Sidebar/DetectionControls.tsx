@@ -11,6 +11,7 @@ interface Props {
   filesCount: number;
   batchProgress: { current: number; total: number };
   onDetect: () => void;
+  validationOnly?: boolean;
 }
 
 export function DetectionControls({
@@ -19,6 +20,7 @@ export function DetectionControls({
   filesCount,
   batchProgress,
   onDetect,
+  validationOnly = false,
 }: Props) {
   const { t } = useTranslation();
   const {
@@ -41,15 +43,17 @@ export function DetectionControls({
 
   return (
     <>
-      <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("common.categories")}</p>
-        <CategoryInput
-          categories={categories}
-          onChange={setCategories}
-          disabled={loading}
-          recentCategories={recentCategories}
-        />
-      </div>
+      {!validationOnly ? (
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("common.categories")}</p>
+          <CategoryInput
+            categories={categories}
+            onChange={setCategories}
+            disabled={loading}
+            recentCategories={recentCategories}
+          />
+        </div>
+      ) : null}
 
       {appMode === "annotate" && !useSam3 && (
         <>

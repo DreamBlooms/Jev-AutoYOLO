@@ -36,6 +36,7 @@ def import_dataset(
     zip_path: str,
     fmt: str,
     cancel_event: threading.Event | None = None,
+    project_id=None,
 ) -> list[str]:
     """Parse a ZIP dataset and create Detection records. Returns list of detection IDs."""
     if fmt not in IMPORT_FORMATS:
@@ -64,7 +65,7 @@ def import_dataset(
                 logger.info("Import cancelled after %d/%d images", i, len(parsed))
                 break
 
-            _import_one(db, repo, item)
+            _import_one(db, repo, item, project_id=project_id)
             detection_ids.append(item["detection_id"])
 
             if (i + 1) % BATCH_SIZE == 0:
@@ -74,7 +75,7 @@ def import_dataset(
         return detection_ids
 
 
-def _import_one(db, repo: DetectionRepository, item: dict) -> None:
+def _import_one(db, repo: DetectionRepository, item: dict, project_id=None) -> None:
     """Import a single parsed image + boxes into the database."""
     det = repo.create(
         image_path=item["image_path"],
@@ -83,6 +84,7 @@ def _import_one(db, repo: DetectionRepository, item: dict) -> None:
         image_height=item["image_height"],
         categories=[item.get("categories", [])] if item.get("categories") else [],
         model_name="imported",
+        project_id=project_id,
     )
     det.model_type = None
     det.filter_mode = "all"

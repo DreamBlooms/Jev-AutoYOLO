@@ -7,7 +7,7 @@ import uuid
 from pathlib import Path
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
 from ...core.config import settings
@@ -17,6 +17,7 @@ from ...repositories.video import VideoRepository
 from ...schemas.common import APIResponse
 from ...schemas.video import ExtractKeyframesIn, VideoOut
 from ...services import video_service
+from ...services.projects import resolve_project_id
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1", tags=["video"])
@@ -42,6 +43,7 @@ ALLOWED_VIDEO_EXTS = {".mp4", ".mov", ".avi", ".mkv", ".webm", ".m4v"}
 @router.post("/videos/upload", status_code=201)
 async def upload_video(
     file: UploadFile = File(...),
+    project_id: str = Form(""),
     repo: VideoRepository = Depends(_get_video_repo),
 ) -> APIResponse:
     ext = Path(file.filename).suffix.lower()  # type: ignore[arg-type]
@@ -56,6 +58,11 @@ async def upload_video(
     if size_mb > settings.max_video_upload_size_mb:
         raise HTTPException(400, detail=f"File exceeds {settings.max_video_upload_size_mb}MB limit")
 
+    try:
+        project_uuid = resolve_project_id(repo.db, project_id)
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+
     filepath, safe_name, _ = _save_video_file(file)
 
     meta = video_service.get_video_metadata(filepath)
@@ -67,6 +74,7 @@ async def upload_video(
         total_frames=meta.get("total_frames"),
         width=meta.get("width"),
         height=meta.get("height"),
+        project_id=project_uuid,
     )
     repo.db.commit()
 
@@ -77,9 +85,14 @@ async def upload_video(
 def list_videos(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=1000, validation_alias="pageSize"),
+    project_id: str = Query("", validation_alias="projectId"),
     repo: VideoRepository = Depends(_get_video_repo),
 ) -> APIResponse:
-    items, total = repo.list_videos(page=page, page_size=page_size)
+    try:
+        project_uuid = resolve_project_id(repo.db, project_id) if project_id else None
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
+    items, total = repo.list_videos(page=page, page_size=page_size, project_id=project_uuid)
     return APIResponse(
         data=[VideoOut.model_validate(v).model_dump(by_alias=True) for v in items],
         total=total,
@@ -201,10 +214,17 @@ def delete_video(
 
 
 @router.post("/videos/delete-bulk", status_code=204)
-def delete_videos_bulk(repo: VideoRepository = Depends(_get_video_repo)) -> None:
-    """Delete ALL videos on the server — always queries page=1 until empty."""
+def delete_videos_bulk(
+    project_id: str = Query("", validation_alias="projectId"),
+    repo: VideoRepository = Depends(_get_video_repo),
+) -> None:
+    """Delete all videos in the active project."""
+    try:
+        project_uuid = resolve_project_id(repo.db, project_id) if project_id else None
+    except ValueError as exc:
+        raise HTTPException(400, detail=str(exc)) from exc
     while True:
-        videos, _ = repo.list_videos(page=1, page_size=100)
+        videos, _ = repo.list_videos(page=1, page_size=100, project_id=project_uuid)
         if not videos:
             break
         for video in videos:

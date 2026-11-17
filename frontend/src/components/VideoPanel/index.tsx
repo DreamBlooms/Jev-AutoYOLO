@@ -1,3 +1,4 @@
+import { useAppStore } from "@/store/useAppStore";
 import { type DragEvent } from "react";
 import { VideoList } from "./VideoList";
 import { ExtractionPanel } from "./ExtractionPanel";
@@ -11,6 +12,7 @@ interface Props {
 export function VideoPanel({ onLoadKeyframes, onValidateVideo, disabled }: Props) {
   const { t } = useTranslation();
   const isValidation = !!onValidateVideo;
+  const projectId = useAppStore((s) => s.currentProjectId);
   const queryClient = useQueryClient();
   const [dragOver, setDragOver] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
@@ -25,8 +27,8 @@ export function VideoPanel({ onLoadKeyframes, onValidateVideo, disabled }: Props
   const [selectedFrameIds, setSelectedFrameIds] = useState<Set<string>>(new Set());
 
   const videoQuery = useInfiniteQuery({
-    queryKey: ["videos"],
-    queryFn: ({ pageParam }) => listVideos(pageParam, 30),
+    queryKey: ["videos", projectId],
+    queryFn: ({ pageParam }) => listVideos(pageParam, 30, projectId ?? undefined),
     getNextPageParam: (lastPage, allPages) => {
       const totalFetched = allPages.reduce((sum, p) => sum + p.items.length, 0);
       return totalFetched < lastPage.total ? allPages.length + 1 : undefined;
@@ -40,7 +42,7 @@ export function VideoPanel({ onLoadKeyframes, onValidateVideo, disabled }: Props
   );
 
   const uploadMut = useMutation({
-    mutationFn: uploadVideo,
+    mutationFn: (file: File) => uploadVideo(file, projectId ?? undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["videos"] });
       toast.success(t("videoPanel.uploadSuccess"));
@@ -76,7 +78,7 @@ export function VideoPanel({ onLoadKeyframes, onValidateVideo, disabled }: Props
   });
 
   const clearAllMut = useMutation({
-    mutationFn: deleteAllVideos,
+    mutationFn: () => deleteAllVideos(projectId ?? undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["videos"] });
       setSelectedVideoId(null);

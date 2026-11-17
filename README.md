@@ -186,6 +186,10 @@ Get a TypeSafe key from https://console.typesafe.ai/ or use an OpenRouter key fr
 
 ## Features
 
+### Multi-Project Workspaces
+
+Each project has its own image history, review queue, dataset exports, training jobs, and model artifacts. The UI mirrors the AutoLaya workflow: project overview, annotation workspace, review, datasets, training, and models, with global cross-project pages for review, datasets, models, and settings.
+
 ### Jev Pre-annotation
 
 Upload images or video keyframes with open-vocabulary descriptions (e.g. `fire, smoke`, `red car`). Jev returns normalized Box answers that are converted to pixel bounding boxes. If `TYPESAFE_API_KEY` is missing or the API is unreachable, the backend falls back to the local LocateAnything-3B model when it is installed.

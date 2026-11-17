@@ -5,7 +5,7 @@ from typing import Any
 
 from pydantic import Field, field_validator
 
-from ..models.detection import DetectionStatus, FilterMode
+from ..models.detection import DetectionStatus, FilterMode, ReviewStatus
 from .common import BaseSchema, _coerce_uuid
 
 
@@ -64,6 +64,7 @@ class DetectionListItem(BaseSchema):
     """Lightweight detection for list endpoint — boxes without mask polygons."""
 
     id: str
+    project_id: str | None = None
     image_name: str
     categories: list[str] = []
     model_name: str
@@ -74,15 +75,16 @@ class DetectionListItem(BaseSchema):
     filter_mode: FilterMode | None = None
     filter_nms_iou: float | None = None
     status: DetectionStatus
+    review_status: ReviewStatus = ReviewStatus.pending
     created_at: datetime
     boxes: list[DetectionBoxItem] = []
 
     model_config = {"from_attributes": True}
 
-    @field_validator("id", mode="before")
+    @field_validator("id", "project_id", mode="before")
     @classmethod
-    def coerce_id(cls, v: Any) -> str:
-        return _coerce_uuid(v)
+    def coerce_id(cls, v: Any) -> str | None:
+        return _coerce_uuid(v) if v is not None else None
 
 
 class DetectionOut(DetectionListItem):
@@ -98,3 +100,12 @@ class ExportBatchIn(BaseSchema):
 
 class ExportAllIn(BaseSchema):
     format: str = "yolo"
+    project_id: str | None = None
+
+
+class ReviewStatusIn(BaseSchema):
+    status: ReviewStatus
+
+
+class RedetectIn(DetectionParams):
+    categories: list[str] | None = None
