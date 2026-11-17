@@ -14,6 +14,8 @@
 🖼️ image/video → 🔍 Jev / SAM3 detection → 🎯 SAM2/SAM3 mask → ✏️ refine → 📦 export → 🚀 YOLO → ✅ model
 ```
 
+<img width="1920" height="980" alt="img" src="https://github.com/user-attachments/assets/6047d923-cfc5-4ba1-b2e6-f1029ea5a158" />
+
 **Images or videos in → YOLO model out**, with Jev (TypeSafe System One) auto-labeling, an optional local LocateAnything-3B fallback, SAM2.1 / SAM3 mask refinement, and human-in-the-loop correction. Multi-format export, one-click YOLO training (detect & segment), video keyframe extraction, and model validation — all GPU-accelerated on macOS MPS and Windows/Linux CUDA.
 
 ```mermaid
