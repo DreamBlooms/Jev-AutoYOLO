@@ -98,7 +98,7 @@ For development mode with Vite hot reload, use `./start.sh` or `python3 cli.py s
 **Setup:**
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/DreamBlooms/Jev-AutoYOLO
 cd Jev-AutoYOLO
 
 # Backend
