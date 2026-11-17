@@ -14,6 +14,8 @@
 🖼️ 图片/视频 → 🔍 Jev / SAM3 检测 → 🎯 SAM2/SAM3 分割 → ✏️ 修正 → 📦 导出 → 🚀 YOLO → ✅ 模型
 ```
 
+<img width="1920" height="980" alt="图片" src="https://github.com/user-attachments/assets/e2eaef2b-8aeb-42c0-ba72-025c702d75d2" />
+
 **图片/视频扔进去 → YOLO 模型训出来**，基于 Jev（TypeSafe System One）的自动标注 + 可选本地 LocateAnything-3B 回退 + SAM2.1 / SAM3 mask 精修 + 人工闭环修正。多格式数据集导入导出、训练任务队列、一键 YOLO 训练（检测 & 分割）、视频关键帧提取、模型验证——macOS MPS / Windows & Linux CUDA 全链路 GPU 加速。
 
 ```mermaid
